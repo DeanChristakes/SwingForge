@@ -1,0 +1,13 @@
+{
+  "name": "Swing Forge Golf Trainer",
+  "short_name": "SwingForge",
+  "description": "Square Golf session analyzer with Tour-benchmarked coaching",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#2b2b31",
+  "theme_color": "#2b2b31",
+  "icons": [
+    {"src": "icon-192.png", "sizes": "192x192", "type": "image/png"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png"}
+  ]
+}

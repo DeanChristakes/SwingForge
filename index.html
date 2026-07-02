@@ -1,0 +1,1243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Swing Forge Golf Trainer</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#2b2b31">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#2b2b31; --bg-hi:#34343c;
+  --panel:#383841; --panel2:#44444e; --panel3:#51515c;
+  --text:#f6f6f3; --muted:#b9b9b1; --line:#585862;
+  --yellow:#ffd60a; --yellow2:#ffb800; --yellow-dim:#8a7509;
+  --red:#ff5257; --good:#4cc38a; --warn:#ffd60a; --bad:#ff5257;
+  --radius:20px; --nav-h:74px;
+  --shadow:0 10px 30px rgba(0,0,0,.35), 0 2px 8px rgba(0,0,0,.25);
+  --sheen:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,0) 42%);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{-webkit-text-size-adjust:100%}
+body{font-family:'Inter',system-ui,sans-serif;color:var(--text);min-height:100vh;padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom) + 16px);background:radial-gradient(1100px 520px at 50% -180px, #3d3d47 0%, var(--bg) 58%) fixed, var(--bg)}
+.wrap{max-width:860px;margin:0 auto;padding:0 14px}
+h1,h2,h3,.disp{font-family:'Barlow Condensed';letter-spacing:.04em;text-transform:uppercase}
+button{font-family:inherit;color:inherit}
+
+/* ---------- top bar ---------- */
+.topbar{position:sticky;top:0;z-index:40;background:linear-gradient(var(--bg) 82%,transparent);padding:16px 0 10px}
+.topbar .inner{display:flex;align-items:center;gap:10px;min-height:40px}
+.topbar h1{font-size:26px;font-weight:800}
+.topbar h1 .y{color:var(--yellow)}
+.backbtn{display:none;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:8px 14px;font-family:'Barlow Condensed';font-weight:600;font-size:16px;letter-spacing:.05em;text-transform:uppercase;cursor:pointer}
+.backbtn:active{background:var(--panel3)}
+.topbar .crumb{font-size:13px;color:var(--muted)}
+
+/* ---------- bottom nav ---------- */
+.bottomnav{position:fixed;left:0;right:0;bottom:0;z-index:50;background:rgba(52,52,60,.92);backdrop-filter:blur(18px) saturate(1.3);-webkit-backdrop-filter:blur(18px) saturate(1.3);border-top:1px solid rgba(255,255,255,.09);box-shadow:0 -8px 24px rgba(0,0,0,.28);padding-bottom:env(safe-area-inset-bottom)}
+.bottomnav .inner{max-width:860px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);height:var(--nav-h)}
+.navbtn{background:none;border:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;color:var(--muted)}
+.navbtn svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.navbtn span{font-family:'Barlow Condensed';font-size:13px;font-weight:600;letter-spacing:.08em;text-transform:uppercase}
+.navbtn{position:relative}
+.navbtn.active{color:var(--yellow)}
+.navbtn.active::before{content:'';position:absolute;top:9px;width:52px;height:32px;border-radius:999px;background:rgba(255,214,10,.13);box-shadow:inset 0 0 0 1px rgba(255,214,10,.22)}
+.navbtn svg,.navbtn span{position:relative}
+.navbtn .dot{position:absolute;display:none}
+
+/* ---------- cards ---------- */
+.view{display:none;animation:fadein .18s ease}
+.view.active{display:block}
+@keyframes fadein{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.card{background:var(--sheen), var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:20px;margin-bottom:16px;box-shadow:var(--shadow)}
+.card h2{font-size:22px;font-weight:700;margin-bottom:2px}
+.card h2 .y{color:var(--yellow)}
+.card .sub{font-size:13px;color:var(--muted);margin-bottom:12px;line-height:1.5}
+.eyebrow{font-family:'Barlow Condensed';font-weight:600;font-size:13px;letter-spacing:.16em;text-transform:uppercase;color:var(--yellow)}
+.pill{display:inline-block;min-width:40px;text-align:center;font-weight:700;font-size:12.5px;border-radius:999px;padding:3px 9px;color:#0b0b0c}
+.p-good{background:var(--good)} .p-warn{background:var(--warn)} .p-bad{background:var(--bad);color:#fff}
+.chip{display:inline-block;font-size:12px;background:var(--panel3);border-radius:999px;padding:4px 11px;margin:2px 3px 2px 0;color:var(--muted)}
+.chip.hot{background:rgba(229,72,77,.16);color:#ff8d91;border:1px solid rgba(229,72,77,.4)}
+.mutednote{font-size:12.5px;color:var(--muted);line-height:1.55;margin-top:10px}
+.btn{font-weight:700;font-size:14px;border:none;border-radius:13px;padding:13px 20px;cursor:pointer;background:linear-gradient(180deg,var(--yellow),var(--yellow2));color:#141414;box-shadow:0 6px 18px rgba(255,184,0,.28), inset 0 1px 0 rgba(255,255,255,.35)}
+.btn.ghost{background:var(--panel2);color:var(--text);border:1px solid var(--line);box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}
+.btn:active{transform:scale(.98)}
+.btnrow{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+.statgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin:12px 0}
+.stat{background:var(--panel2);border-radius:14px;padding:13px 15px;position:relative;overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}
+.stat::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3.5px;background:var(--yellow);opacity:.85}
+.stat:nth-child(2)::before{background:var(--good)}
+.stat:nth-child(3)::before{background:var(--red)}
+.stat:nth-child(4)::before{background:var(--muted)}
+.stat .n{font-family:'Barlow Condensed';font-weight:800;font-size:34px;line-height:1;color:var(--yellow);letter-spacing:.01em}
+.stat .n.plain{color:var(--text)}
+.stat .l{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-top:4px}
+
+/* ---------- home ---------- */
+.focus{border:1px solid rgba(255,214,10,.42);background:var(--sheen),linear-gradient(160deg,rgba(255,214,10,.12),var(--panel) 55%);box-shadow:0 0 0 1px rgba(255,214,10,.12), 0 14px 40px rgba(255,184,0,.14), var(--shadow)}
+.focus .why{font-size:13.5px;line-height:1.6;color:#d9d9d2;margin:8px 0}
+.focus .vs{display:flex;gap:14px;margin:10px 0;flex-wrap:wrap}
+.focus .vs .v{background:var(--panel2);border-radius:10px;padding:8px 14px}
+.focus .vs .v b{font-family:'Barlow Condensed';font-size:22px;font-weight:700}
+.focus .vs .v span{display:block;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.focus .vs .v.tour b{color:var(--yellow)}
+.focus .vs .v.you.off b{color:var(--red)}
+
+/* ---------- bag ---------- */
+.bagwrap{display:grid;grid-template-columns:150px 1fr;gap:16px;align-items:start}
+@media(max-width:620px){.bagwrap{grid-template-columns:110px 1fr}}
+.bagsvg{width:100%;height:auto}
+.clublist{display:flex;flex-direction:column;gap:8px}
+.clubrow{background:var(--panel2);border:1px solid var(--line);border-radius:12px;overflow:hidden;cursor:pointer}
+.clubrow .head{display:flex;align-items:center;gap:12px;padding:10px 14px}
+.clubrow .slot{width:54px;height:34px;overflow:hidden;position:relative;flex:0 0 auto;transition:height .3s cubic-bezier(.34,1.3,.64,1)}
+.clubrow .slot svg{position:absolute;left:50%;top:2px;transform:translateX(-50%)}
+.clubrow.open .slot{height:72px}
+.clubrow .cname{font-family:'Barlow Condensed';font-weight:700;font-size:18px;letter-spacing:.04em;line-height:1.1}
+.clubrow .ccarry{margin-left:auto;text-align:right}
+.clubrow .ccarry b{font-family:'Barlow Condensed';font-size:24px;font-weight:800;color:var(--yellow)}
+.clubrow .ccarry span{display:block;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.clubrow .detail{max-height:0;overflow:hidden;transition:max-height .3s ease}
+.clubrow.open .detail{max-height:640px}
+.clubrow .detail .inner{padding:4px 14px 14px;border-top:1px solid #5e5e68}
+table.mtable{width:100%;border-collapse:collapse;font-size:12.5px}
+table.mtable th{font-family:'Barlow Condensed';font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);text-align:left;padding:6px 6px;border-bottom:1px solid var(--line);white-space:nowrap}
+table.mtable td{padding:6px 6px;border-bottom:1px solid var(--line);white-space:nowrap}
+table.mtable td.you{font-weight:600}
+table.mtable td.tour{color:var(--yellow)}
+table.mtable td.gap-bad{color:var(--red);font-weight:600}
+table.mtable td.gap-ok{color:var(--good)}
+
+/* ---------- sessions list ---------- */
+.sesscard{background:var(--sheen),var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;margin-bottom:14px;cursor:pointer;display:flex;align-items:center;gap:16px;box-shadow:var(--shadow);transition:transform .12s}
+.sesscard:active{background:var(--panel2)}
+.sesscard .scorebig{font-family:'Barlow Condensed';font-weight:800;font-size:34px;min-width:56px;text-align:center;border-radius:12px;padding:6px 4px;color:#0b0b0c}
+.sesscard .meta{flex:1;min-width:0}
+.sesscard .meta .t{font-family:'Barlow Condensed';font-size:20px;font-weight:700;letter-spacing:.04em}
+.sesscard .meta .d{font-size:12.5px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sesscard .arrow{color:var(--muted);font-size:20px}
+.delbtn{background:none;border:none;color:var(--muted);font-size:12px;cursor:pointer;text-decoration:underline}
+
+/* ---------- session detail / shots ---------- */
+.hl{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:640px){.hl{grid-template-columns:1fr}}
+.hl h3{font-size:17px;margin-bottom:8px}
+.hl .good3 h3{color:var(--good)} .hl .bad3 h3{color:var(--red)}
+.hl li{list-style:none;font-size:13px;line-height:1.5;padding:8px 10px;border-left:3px solid var(--line);margin-bottom:7px;background:var(--panel2);border-radius:0 8px 8px 0}
+.hl .good3 li{border-left-color:var(--good)} .hl .bad3 li{border-left-color:var(--red)}
+.leak{margin-top:14px;padding:13px;border-radius:11px;background:rgba(255,214,10,.07);border:1px solid rgba(255,214,10,.3);font-size:13.5px;line-height:1.55}
+.leak b{color:var(--yellow)}
+.shotstrip{display:flex;gap:5px;overflow-x:auto;padding:4px 2px 10px;-webkit-overflow-scrolling:touch}
+.shotstrip button{flex:0 0 auto;width:44px;height:44px;border-radius:13px;border:none;cursor:pointer;font-family:'Barlow Condensed';font-weight:800;font-size:16px;color:#17171a;box-shadow:0 3px 8px rgba(0,0,0,.3), inset 0 1px 0 rgba(255,255,255,.28)}
+.shotstrip button.sel{outline:3px solid var(--text);outline-offset:1.5px;transform:translateY(-2px)}
+select{font-family:'Inter';font-size:14px;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--panel2);color:var(--text);min-width:130px}
+.deepgrid{display:grid;grid-template-columns:290px 1fr;gap:14px}
+@media(max-width:720px){.deepgrid{grid-template-columns:1fr}}
+.delivery{background:var(--panel2);border-radius:12px;padding:14px;text-align:center}
+.delivery .shape{font-family:'Barlow Condensed';font-weight:800;font-size:25px;letter-spacing:.05em;text-transform:uppercase;color:var(--yellow)}
+.delivery .head{font-size:12.5px;color:var(--muted);margin:4px 0 10px;line-height:1.4}
+.mrow{display:grid;grid-template-columns:112px 62px 1fr;gap:10px;align-items:center;background:var(--panel2);border-radius:10px;padding:9px 12px;margin-bottom:8px}
+.mrow .mname{font-size:12px;font-weight:600}
+.mrow .mval{font-family:'Barlow Condensed';font-weight:700;font-size:20px;text-align:right}
+.mrow .mbar{position:relative;height:8px;background:var(--panel3);border-radius:99px}
+.mrow .mbar .zone{position:absolute;top:0;height:100%;background:rgba(76,195,138,.3);border-radius:99px}
+.mrow .mbar .dot{position:absolute;top:-4px;width:15px;height:15px;border-radius:50%;border:2.5px solid var(--panel);transform:translateX(-50%)}
+.mrow .mnote{grid-column:1/-1;font-size:12px;color:var(--muted);line-height:1.45}
+.estbox{margin-top:12px;padding:13px;border-radius:11px;background:var(--panel3);font-size:12.5px;line-height:1.5;text-align:left}
+.estbox .big{font-family:'Barlow Condensed';font-weight:800;font-size:23px;color:var(--yellow)}
+.conf{font-size:10px;letter-spacing:.08em;text-transform:uppercase;padding:2px 8px;border-radius:999px;color:#0b0b0c;margin-left:6px;vertical-align:middle;font-weight:700}
+.critique li{font-size:13px;line-height:1.55;margin:0 0 8px 18px}
+
+/* ---------- coaching ---------- */
+.coachcard{background:var(--sheen), var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:20px;margin-bottom:16px;box-shadow:var(--shadow)}
+.coachcard.rank1{border-color:rgba(255,82,87,.55);background:var(--sheen),linear-gradient(160deg,rgba(255,82,87,.12),var(--panel) 52%);box-shadow:0 0 0 1px rgba(255,82,87,.15), 0 12px 34px rgba(229,72,77,.16), var(--shadow)}
+.coachcard .rank{font-family:'Barlow Condensed';font-weight:800;font-size:14px;letter-spacing:.14em;color:var(--red)}
+.coachcard h3{font-size:21px;margin:4px 0 2px}
+.coachcard .ref{font-size:12.5px;color:var(--muted);line-height:1.55;margin:8px 0}
+.coachcard .drill{margin-top:10px;padding:12px;background:var(--panel2);border-radius:10px}
+.coachcard .drill h4{font-family:'Barlow Condensed';font-size:16px;letter-spacing:.06em;text-transform:uppercase;color:var(--yellow);margin-bottom:6px}
+.coachcard .drill ol{margin-left:18px;font-size:13px;line-height:1.6}
+.trend{font-size:12px;font-weight:700;padding:2px 9px;border-radius:999px;margin-left:8px;vertical-align:middle}
+.trend.up{background:rgba(76,195,138,.15);color:var(--good)}
+.trend.down{background:rgba(229,72,77,.15);color:var(--red)}
+
+/* ---------- upload ---------- */
+.drop{border:2px dashed var(--yellow-dim);border-radius:var(--radius);padding:38px 20px;text-align:center;background:var(--panel2);cursor:pointer}
+.drop.dragover{background:var(--panel3);border-color:var(--yellow)}
+.drop strong{display:block;font-size:16px;margin-bottom:6px}
+.drop span{font-size:13px;color:var(--muted)}
+textarea#pasteBox{width:100%;min-height:110px;border:1px solid var(--line);border-radius:10px;padding:10px;font-family:ui-monospace,monospace;font-size:12px;background:var(--panel2);color:var(--text);display:none;margin-top:12px}
+.mapped{margin-top:10px}
+.storagewarn{display:none;margin:0 0 12px;padding:11px 14px;border-radius:11px;background:rgba(229,72,77,.1);border:1px solid rgba(229,72,77,.4);font-size:12.5px;line-height:1.5}
+.empty{padding:44px 20px;text-align:center;color:var(--muted);font-size:14px;line-height:1.6}
+footer{color:#5c5c56;font-size:11px;text-align:center;margin-top:20px;line-height:1.6;padding:0 12px}
+
+
+/* ---------- rings & sparklines ---------- */
+.ring{display:block}
+.ring .bgc{stroke:var(--panel3);fill:none}
+.ring .fgc{fill:none;stroke-linecap:round;transform:rotate(-90deg);transform-origin:50% 50%;filter:drop-shadow(0 0 6px rgba(255,214,10,.35))}
+.ring text{font-family:'Barlow Condensed';font-weight:800;fill:var(--text)}
+.herostats{display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+.spark{display:block}
+.spark polyline{fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.spark .area{opacity:.14}
+.progressrow{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:640px){.progressrow{grid-template-columns:1fr}}
+.trendtile{background:var(--panel2);border-radius:14px;padding:13px 15px;box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}
+.trendtile .tl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.trendtile .tv{font-family:'Barlow Condensed';font-weight:800;font-size:26px;margin:2px 0 6px}
+.greet{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin:2px 0 12px}
+.greet .g1{font-family:'Barlow Condensed';font-weight:800;font-size:30px;letter-spacing:.03em;text-transform:uppercase}
+.greet .g1 .y{color:var(--yellow)}
+.greet .g2{font-size:12px;color:var(--muted)}
+
+/* ---------- drill discovery ---------- */
+.catchips{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.catchip{font-family:'Barlow Condensed';font-weight:600;font-size:15px;letter-spacing:.05em;text-transform:uppercase;background:var(--panel2);border:1px solid var(--line);border-radius:999px;padding:9px 16px;cursor:pointer;color:var(--muted)}
+.catchip.on{background:var(--yellow);border-color:var(--yellow);color:#0b0b0c}
+.catchip:active{transform:scale(.97)}
+.drillacc{background:var(--panel2);border:1px solid var(--line);border-radius:12px;margin-top:10px;cursor:pointer;overflow:hidden}
+.drillacc .dhead{display:flex;align-items:center;gap:10px;padding:12px 14px}
+.drillacc .dtitle{font-family:'Barlow Condensed';font-weight:700;font-size:17.5px;letter-spacing:.04em}
+.drillacc .dfix{font-size:11.5px;color:var(--red);margin-top:2px}
+.drillacc .dcaret{margin-left:auto;color:var(--muted);font-size:20px;transition:transform .2s}
+.drillacc.open .dcaret{transform:rotate(90deg)}
+.drillacc .dbody{max-height:0;overflow:hidden;transition:max-height .28s ease}
+.drillacc.open .dbody{max-height:480px}
+.drillacc .dinner{padding:2px 14px 14px;border-top:1px solid #5e5e68}
+.drillacc .dinner ol{margin:10px 0 0 18px;font-size:13px;line-height:1.6}
+a.linkbtn{text-decoration:none;font-size:13px;display:inline-block}
+
+@media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar"><div class="inner">
+    <button class="backbtn" id="backBtn" onclick="goBack()">‹ Back</button>
+    <h1 id="topTitle">Swing<span class="y">Forge</span></h1>
+    <span class="crumb" id="crumb"></span>
+  </div></div>
+
+  <div class="storagewarn" id="storageWarn"><b>Heads up:</b> this browser is blocking local storage, so sessions won't survive closing the page. Open the file in Safari (not a preview pane) for saved sessions to stick.</div>
+
+  <div class="view" id="view-home"></div>
+  <div class="view" id="view-sessions"></div>
+  <div class="view" id="view-sessdetail"></div>
+  <div class="view" id="view-coaching"></div>
+  <div class="view" id="view-upload">
+    <div class="card">
+      <h2>Upload <span class="y">Range Session</span></h2>
+      <div class="sub">Export your session as CSV from the Square Golf app and drop it here. It's parsed on-device, analyzed, and saved to your Sessions.</div>
+      <div class="drop" id="dropZone" tabindex="0" role="button" aria-label="Import CSV file">
+        <strong>Tap to choose a CSV — or drag it here</strong>
+        <span>Nothing uploads anywhere. Everything stays on this iPad.</span>
+      </div>
+      <input type="file" id="fileInput" accept=".csv,text/csv" style="display:none">
+      <div class="btnrow">
+        <button class="btn ghost" onclick="togglePaste()">Paste CSV text</button>
+        <button class="btn ghost" onclick="loadDemo()">Load demo session</button>
+      </div>
+      <textarea id="pasteBox" placeholder="Paste CSV rows here, header row first…"></textarea>
+      <div class="btnrow"><button class="btn" id="parsePasteBtn" style="display:none" onclick="parsePaste()">Analyze & save</button></div>
+      <div id="mapReport"></div>
+    </div>
+  </div>
+
+  <footer>SwingForge · Tour benchmarks: TrackMan PGA Tour averages (2023 update where published; GW/SW/LW extrapolated) · clubhead speed & smash on the Square are derived from ball speed, not measured · not affiliated with Square Golf or TrackMan</footer>
+</div>
+
+<div class="bottomnav"><div class="inner">
+  <button class="navbtn active" id="nav-home" onclick="go('home')">
+    <svg viewBox="0 0 24 24"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10.5V20h13v-9.5"/></svg><span>Home</span></button>
+  <button class="navbtn" id="nav-sessions" onclick="go('sessions')">
+    <svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 10h16"/></svg><span>Sessions</span></button>
+  <button class="navbtn" id="nav-coaching" onclick="go('coaching')">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1" fill="currentColor"/></svg><span>Coaching</span></button>
+  <button class="navbtn" id="nav-upload" onclick="go('upload')">
+    <svg viewBox="0 0 24 24"><path d="M12 16V5M7.5 9.5 12 5l4.5 4.5"/><path d="M4 16v3a1.5 1.5 0 0 0 1.5 1.5h13A1.5 1.5 0 0 0 20 19v-3"/></svg><span>Upload</span></button>
+</div></div>
+<script>
+"use strict";
+/* ================= STORAGE (localStorage w/ in-memory fallback) ================= */
+const store=(()=>{
+  let mem={}, ok=false;
+  try{ localStorage.setItem("__sf_t","1"); localStorage.removeItem("__sf_t"); ok=true; }catch(e){ ok=false; }
+  return {
+    ok,
+    get(k){ try{ return ok? JSON.parse(localStorage.getItem(k)) : (mem[k]??null); }catch(e){ return mem[k]??null; } },
+    set(k,v){ mem[k]=v; if(ok){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} } },
+    del(k){ delete mem[k]; if(ok){ try{ localStorage.removeItem(k); }catch(e){} } }
+  };
+})();
+let DB = store.get("sf_db") || {sessions:[]};
+function saveDB(){ store.set("sf_db", DB); }
+
+/* ================= TOUR BENCHMARKS (TrackMan PGA Tour averages; 2023 update where published) ================= */
+/* cs=club speed mph, aoa deg, bs=ball speed mph, smash, launch deg, spin rpm, apex yd, land deg, carry yd */
+const TOUR={
+  DR:{cs:115,aoa:-1.3,bs:171,smash:1.48,launch:10.9,spin:2686,apex:35,land:38,carry:282,label:"Driver"},
+  "3W":{cs:107,aoa:-2.9,bs:158,smash:1.48,launch:9.2,spin:3655,apex:30,land:43,carry:249,label:"3 Wood"},
+  "5W":{cs:103,aoa:-3.3,bs:152,smash:1.47,launch:9.4,spin:4350,apex:31,land:47,carry:230,label:"5 Wood"},
+  "2H":{cs:100,aoa:-3.5,bs:146,smash:1.46,launch:10.2,spin:4437,apex:29,land:47,carry:225,label:"Hybrid"},
+  "3H":{cs:100,aoa:-3.5,bs:146,smash:1.46,launch:10.2,spin:4437,apex:29,land:47,carry:225,label:"Hybrid"},
+  "4H":{cs:100,aoa:-3.5,bs:146,smash:1.46,launch:10.2,spin:4437,apex:29,land:47,carry:225,label:"Hybrid"},
+  "3I":{cs:100,aoa:-3.1,bs:145,smash:1.45,launch:10.4,spin:4630,apex:27,land:46,carry:218,label:"3 Iron"},
+  "4I":{cs:96,aoa:-3.4,bs:137,smash:1.43,launch:11.0,spin:4836,apex:28,land:48,carry:203,label:"4 Iron"},
+  "5I":{cs:96,aoa:-3.7,bs:135,smash:1.41,launch:12.1,spin:5361,apex:31,land:49,carry:199,label:"5 Iron"},
+  "6I":{cs:92,aoa:-4.1,bs:127,smash:1.38,launch:14.1,spin:6231,apex:30,land:50,carry:183,label:"6 Iron"},
+  "7I":{cs:92,aoa:-4.3,bs:123,smash:1.33,launch:16.3,spin:7097,apex:32,land:51,carry:176,label:"7 Iron"},
+  "8I":{cs:87,aoa:-4.5,bs:115,smash:1.32,launch:18.1,spin:7998,apex:31,land:51,carry:160,label:"8 Iron"},
+  "9I":{cs:85,aoa:-4.7,bs:109,smash:1.28,launch:20.4,spin:8647,apex:30,land:52,carry:148,label:"9 Iron"},
+  PW:{cs:83,aoa:-5.0,bs:102,smash:1.23,launch:24.2,spin:9304,apex:29,land:52,carry:142,label:"P-Wedge"},
+  GW:{cs:80,aoa:-5.2,bs:95,smash:1.19,launch:27,spin:9800,apex:27,land:53,carry:120,label:"G-Wedge",extrap:true},
+  SW:{cs:77,aoa:-5.4,bs:87,smash:1.13,launch:29,spin:10300,apex:25,land:54,carry:105,label:"S-Wedge",extrap:true},
+  LW:{cs:74,aoa:-5.6,bs:79,smash:1.07,launch:31,spin:10600,apex:23,land:55,carry:90,label:"L-Wedge",extrap:true},
+};
+/* normalization spread per metric for gap ranking (roughly "one meaningful step") */
+const GAP_NORM={aoa:2.0, launch:3.0, spin:0.18/*relative*/, apex:6, land:5, face:2.0, path:3.0, smash:0.05};
+
+/* ================= CSV PARSER + FIELD MAPPING (validated against real Square export) ================= */
+function parseCSV(text){
+  const rows=[]; let row=[], cur="", inQ=false;
+  for(let i=0;i<text.length;i++){
+    const c=text[i];
+    if(inQ){ if(c==='"'){ if(text[i+1]==='"'){cur+='"';i++;} else inQ=false; } else cur+=c; }
+    else{
+      if(c==='"') inQ=true;
+      else if(c===','){row.push(cur);cur="";}
+      else if(c==='\n'||c==='\r'){ if(c==='\r'&&text[i+1]==='\n')i++; row.push(cur);cur=""; if(row.some(v=>v.trim()!=="")) rows.push(row); row=[]; }
+      else cur+=c;
+    }
+  }
+  if(cur!==""||row.length){row.push(cur); if(row.some(v=>v.trim()!=="")) rows.push(row);}
+  return rows;
+}
+const FIELD_PATTERNS={
+  club:[/^club(\s*(type|name))?$/i], ballSpeed:[/ball\s*speed/i],
+  vla:[/launch\s*angle/i,/^vla$/i], hla:[/launch\s*direction/i,/^hla$/i,/side\s*angle/i],
+  backSpin:[/back\s*spin/i], sideSpin:[/side\s*spin/i],
+  totalSpin:[/total\s*spin/i,/^spin(\s*rate)?(\s*\(.*\))?$/i,/spin\s*rate/i], spinAxis:[/spin\s*axis/i],
+  apex:[/apex/i,/max\s*height/i], carry:[/carry/i], total:[/^total(\s*distance)?(\s*\(.*\))?$/i],
+  run:[/run(\s*out)?/i,/roll/i], offline:[/offline/i], landing:[/landing\s*angle/i],
+  path:[/club\s*path/i,/swing\s*path/i,/^path$/i], aoa:[/attack/i,/^aoa$/i],
+  dloft:[/dyn.*loft/i,/^loft$/i], face:[/face\s*(to\s*target|angle)/i,/^face$/i],
+  clubSpeedMeas:[/club\s*speed/i], smashMeas:[/smash/i], index:[/^index$/i],
+};
+function mapHeaders(headers){
+  const map={}, used=new Set();
+  for(const [f,pats] of Object.entries(FIELD_PATTERNS)){
+    for(const p of pats){ const idx=headers.findIndex((h,i)=>!used.has(i)&&p.test(h.trim())); if(idx>=0){map[f]=idx;used.add(idx);break;} }
+  }
+  if(map.club==null){ const idx=headers.findIndex((h,i)=>!used.has(i)&&/club/i.test(h)); if(idx>=0)map.club=idx; }
+  return map;
+}
+const num=v=>{
+  if(v==null)return null;
+  let s=String(v).trim(), sign=1;
+  const m=s.match(/^([LR])\s*([\d.]+)$/i);
+  if(m){ sign=m[1].toUpperCase()==="L"?-1:1; s=m[2]; } else s=s.replace(/[^\d.\-+eE]/g,"");
+  if(s===""||s==="-")return null;
+  const f=parseFloat(s); return isFinite(f)?sign*f:null;
+};
+function normClub(raw){
+  if(!raw)return"UNK";
+  let s=String(raw).trim().toUpperCase();
+  const t={DRIVER:"DR","1W":"DR",D:"DR","3 WOOD":"3W","5 WOOD":"5W","PITCHING WEDGE":"PW","P-WEDGE":"PW","GAP WEDGE":"GW","G-WEDGE":"GW","A-WEDGE":"GW","APPROACH WEDGE":"GW","SAND WEDGE":"SW","S-WEDGE":"SW","LOB WEDGE":"LW","L-WEDGE":"LW"};
+  if(t[s])return t[s];
+  let m=s.match(/^(\d)\s*(IRON|I)$/); if(m)return m[1]+"I";
+  m=s.match(/^(IRON|I)\s*(\d)$/); if(m)return m[2]+"I";
+  m=s.match(/^(\d)\s*(WOOD|W)$/); if(m)return m[1]+"W";
+  m=s.match(/^(\d)\s*(HYBRID|H)$/); if(m)return m[1]+"H";
+  m=s.match(/^([PGSAL])[\s\-]*W(EDGE)?$/); if(m)return(m[1]==="A"?"G":m[1])+"W";
+  if(/^(DR|\dW|\dH|\dI|PW|GW|SW|LW)$/.test(s))return s;
+  return s.slice(0,4);
+}
+
+/* ================= PER-SHOT ANALYSIS (windows anchored to Tour numbers) ================= */
+const PATH_WIN=[-3,3],PATH_R=[-12,12],FACE_WIN=[-2,2],FACE_R=[-10,10],HLA_WIN=[-3,3],HLA_R=[-12,12];
+function prof(club){
+  const t=TOUR[club]||TOUR["7I"];
+  return {smash:t.smash, spin:[t.spin*0.75,t.spin*1.2], vla:[t.launch-2.5,t.launch+3.5],
+          aoa: club==="DR"?[1,5]:[t.aoa-1.5,t.aoa+2], aoaR: club==="DR"?[-8,10]:[t.aoa-8,t.aoa+8],
+          dloft:[t.launch+2,t.launch+9], tour:t};
+}
+function gradeInWindow(v,win,range){
+  if(v==null)return null;
+  const[lo,hi]=win;
+  if(v>=lo&&v<=hi)return{g:"good",d:0};
+  const span=Math.max(hi-lo,1), dist=v<lo?(lo-v)/span:(v-hi)/span;
+  return dist<=0.8?{g:"warn",d:dist}:{g:"bad",d:dist};
+}
+function analyzeShot(s){
+  const p=prof(s.club);
+  const spin=s.totalSpin ?? (s.backSpin!=null&&s.sideSpin!=null?Math.hypot(s.backSpin,s.sideSpin):s.backSpin);
+  s.spinUsed=spin;
+  const g={};
+  g.path=gradeInWindow(s.path,PATH_WIN,PATH_R); g.face=gradeInWindow(s.face,FACE_WIN,FACE_R);
+  g.aoa=gradeInWindow(s.aoa,p.aoa,p.aoaR);
+  g.dloft=gradeInWindow(s.dloft,p.dloft,[p.dloft[0]-8,p.dloft[1]+10]);
+  g.spin=gradeInWindow(spin,p.spin,[p.spin[0]*0.4,p.spin[1]*1.6]);
+  g.vla=gradeInWindow(s.vla,p.vla,[p.vla[0]-8,p.vla[1]+10]);
+  g.hla=gradeInWindow(s.hla,HLA_WIN,HLA_R);
+  if(s.face!=null&&s.path!=null){ s.ftp=s.face-s.path; g.ftp=gradeInWindow(s.ftp,[-2,2],[-10,10]); }
+  s.grades=g;
+  const W={path:1.4,face:1.6,ftp:1.6,aoa:1.2,dloft:0.8,spin:1.0,vla:0.8,hla:0.9};
+  let tot=0,got=0;
+  for(const[k,gr]of Object.entries(g)){ if(!gr)continue; const w=W[k]||1; tot+=w;
+    got+=w*(gr.g==="good"?1:gr.g==="warn"?Math.max(0,.65-.25*gr.d):Math.max(0,.3-.1*gr.d)); }
+  s.score=tot?Math.round(100*got/tot):null;
+
+  s.est={};
+  if(s.ballSpeed!=null){
+    if(s.clubSpeedMeas){
+      s.est.club=+s.clubSpeedMeas.toFixed(1);
+      s.est.smash=+((s.smashMeas??(s.ballSpeed/s.clubSpeedMeas))).toFixed(3);
+      s.est.measured=true;s.est.conf="high";s.est.quality=s.est.smash>=0.97*p.smash?"solid":"suspect";
+      s.est.notes=["Club speed measured by the device — smash is actual."];
+    }else{
+      s.est.club=+(s.ballSpeed/p.smash).toFixed(1); s.est.smash=p.smash; s.est.measured=false;
+      s.est.conf="medium";s.est.quality="solid";s.est.notes=[];
+      s.est.calc=`${s.ballSpeed.toFixed(1)} mph ball ÷ ${p.smash} smash = ~${s.est.club} mph`;
+      if(spin!=null){
+        if(spin>p.spin[1]*1.25){s.est.quality="suspect";s.est.conf="low";s.est.notes.push("Spin well above the "+s.club+" window — likely thin/low-face contact; true swing speed is probably higher.");}
+        else if(spin<p.spin[0]*0.7){s.est.quality="suspect";s.est.conf="low";s.est.notes.push("Spin unusually low — possible high-face strike.");}
+      }
+      if((s.club==="DR"||s.club==="3W")&&s.vla!=null&&s.vla<6){s.est.quality="suspect";s.est.conf="low";s.est.notes.push("Very low launch for a wood — often low-face contact.");}
+    }
+  }
+  s.shape=classifyShape(s);
+  s.critique=critique(s);
+  return s;
+}
+function classifyShape(s){
+  if(s.face==null||s.path==null){
+    const ax=s.spinAxis??((s.sideSpin!=null&&s.backSpin)?Math.atan2(s.sideSpin,s.backSpin)*57.3:0);
+    const start=(s.hla==null||Math.abs(s.hla)<2)?"":(s.hla>0?"right-start ":"left-start ");
+    const curve=Math.abs(ax)<3?"straight":(ax>0?"fade":"draw");
+    return(start+curve).trim();
+  }
+  const ftp=s.face-s.path;
+  const start=s.face<-1.5?"pull":(s.face>1.5?"push":"");
+  let curve="straight";
+  if(ftp>2)curve=ftp<6?"fade":"slice"; else if(ftp<-2)curve=ftp>-6?"draw":"hook";
+  if(!start&&curve==="straight")return"straight";
+  if(!start)return curve; if(curve==="straight")return start;
+  return start+"-"+curve;
+}
+const HEADS={straight:"Flushed it. Bottle that feel.",fade:"Playable fade — repeatable beats perfect.",draw:"Nice draw. Tour-standard shape.",slice:"Slice pattern — face is the culprit, fix it first.",hook:"Hook — usually hands outracing the body.",push:"Push — path and face pointing right together.",pull:"Pull — everything left; classic over-the-top move.","push-slice":"Push-slice — face way open to a rightward path.","pull-hook":"Pull-hook — the two-way miss. Slow it down.","push-draw":"Push-draw — the power pattern.","pull-fade":"Pull-fade — playable if you own it."};
+const fmt=v=>(v>=0?"+":"")+v.toFixed(1);
+function critique(s){
+  const pts=[],flags=new Set(),p=prof(s.club);
+  const shortIron=/^(8I|9I|PW|GW|SW|LW)$/.test(s.club);
+  if(s.face!=null&&s.path!=null){
+    const ftp=s.face-s.path;
+    if(Math.abs(ftp)<=2&&Math.abs(s.face)<=1.5)pts.push(`Face-to-path ${fmt(ftp)}° — square delivery. Live here.`);
+    else if(ftp>2){pts.push(`Face ${fmt(s.face)}° vs path ${fmt(s.path)}° = ${fmt(ftp)}° open — your left-to-right curve. Face controls ~80% of start line; square it before touching path.`);flags.add("openface");}
+    else if(ftp<-2){pts.push(`Face-to-path ${fmt(ftp)}° closed — right-to-left. Past about -5° it's a hook you can't trust.`);if(ftp<-5)flags.add("hook");}
+  }
+  if(s.path!=null){
+    if(s.path>6){pts.push(`Path ${fmt(s.path)}° in-to-out is extreme — blocks and snap hooks live here.`);flags.add("insideout");}
+    else if(s.path<-6){pts.push(`Path ${fmt(s.path)}° out-to-in is steep over-the-top territory.`);flags.add("overtop");}
+  }
+  if(s.aoa!=null){
+    if(s.club==="DR"&&s.aoa<-2){pts.push(`AoA ${fmt(s.aoa)}° with driver — even Tour pros only average -1.3°, and up to +5° is the amateur distance recipe.`);flags.add("negaoa");}
+    else if(s.club==="DR"&&s.aoa>6)pts.push(`AoA ${fmt(s.aoa)}° is very steep upward — watch for sky marks.`);
+    else if(shortIron&&s.aoa>0){pts.push(`AoA ${fmt(s.aoa)}° (up) on a short iron — likely scooping. Tour pros hit down ${Math.abs(p.tour.aoa).toFixed(1)}° with this club.`);flags.add("scoop");}
+  }
+  if(s.dloft!=null&&s.aoa!=null&&s.club==="DR"){
+    const sl=s.dloft-s.aoa;
+    if(sl>16){pts.push(`Spin loft ~${sl.toFixed(0)}° — a spin machine. Reducing it adds distance at the same swing speed.`);flags.add("spinloft");}
+  }
+  if(s.spinUsed!=null&&s.grades.spin&&s.grades.spin.g!=="good"&&s.spinUsed>p.spin[1])flags.add("highspin");
+  if(s.est&&s.est.quality==="suspect")pts.push("Strike flags on this one — fix contact before reading the numbers literally.");
+  s.flags=flags;
+  return pts;
+}
+
+/* ================= INGEST + CONTACT-FAILURE PASS ================= */
+function ingest(text){
+  const rows=parseCSV(text);
+  let hIdx=rows.findIndex(r=>r.some(c=>/ball\s*speed/i.test(c)));
+  if(hIdx<0){report("Couldn't find a header row with a Ball Speed column. First row seen: "+(rows[0]||[]).join(", "),true);return null;}
+  const headers=rows[hIdx],map=mapHeaders(headers);
+  const get=(r,f)=>map[f]!=null?num(r[map[f]]):null;
+  const raw=(r,f)=>map[f]!=null?String(r[map[f]]??"").trim():"";
+  /* pull session date from Square's metadata line if present */
+  let sessDate=null;
+  for(let i=0;i<hIdx;i++){ const j=rows[i].findIndex(c=>/^dates?$/i.test(String(c).trim())); if(j>=0&&rows[i][j+1]) sessDate=rows[i][j+1]; }
+  let shots=[],skippedStats=0,lastClub="UNK";
+  rows.slice(hIdx+1).forEach(r=>{
+    if(r.some(c=>/^(average|deviation)$/i.test(String(c).trim()))){skippedStats++;return;}
+    const clubRaw=raw(r,"club");
+    const club=clubRaw?normClub(clubRaw):lastClub;
+    if(clubRaw)lastClub=club;
+    const bs=get(r,"ballSpeed"); if(bs==null||bs<5)return;
+    const csm=get(r,"clubSpeedMeas"),smm=get(r,"smashMeas");
+    shots.push({n:shots.length+1,club,ballSpeed:bs,vla:get(r,"vla"),hla:get(r,"hla"),
+      backSpin:get(r,"backSpin"),sideSpin:get(r,"sideSpin"),totalSpin:get(r,"totalSpin"),spinAxis:get(r,"spinAxis"),
+      apex:get(r,"apex"),carry:get(r,"carry"),total:get(r,"total"),run:get(r,"run"),
+      offline:get(r,"offline"),landing:get(r,"landing"),
+      path:get(r,"path"),aoa:get(r,"aoa"),dloft:get(r,"dloft"),face:get(r,"face"),
+      clubSpeedMeas:(csm&&csm>20)?csm:null,smashMeas:(smm&&smm>0.5)?smm:null});
+  });
+  if(!shots.length){report("Headers mapped, but no rows had usable ball-speed data.",true);return null;}
+  const headerSaysMph=headers.some(h=>/mph/i.test(h));
+  const maxBS=Math.max(...shots.map(s=>s.ballSpeed));
+  let converted=false;
+  if(!headerSaysMph&&maxBS<90&&maxBS>20){shots.forEach(s=>{s.ballSpeed=+(s.ballSpeed*2.23694).toFixed(1);});converted=true;}
+  /* Square labels Apex "(yd)" but the values are feet (a 194-yd 5-iron doesn't peak at 96 YARDS).
+     Heuristic: median apex of full-flight shots > 55 -> treat as feet, convert to yards. */
+  let apexConverted=false;
+  const apexVals=shots.filter(s=>s.apex!=null&&s.carry!=null&&s.carry>60).map(s=>s.apex);
+  if(apexVals.length>=3){
+    const sortedA=[...apexVals].sort((a,b)=>a-b);
+    if(sortedA[Math.floor(sortedA.length/2)]>55){
+      shots.forEach(s=>{if(s.apex!=null)s.apex=+(s.apex/3).toFixed(1);});
+      apexConverted=true;
+    }
+  }
+  shots.forEach(analyzeShot);
+  const groups={};
+  shots.forEach(s=>{if(s.carry!=null)(groups[s.club]=groups[s.club]||[]).push(s.carry);});
+  const med=a=>{const b=[...a].sort((x,y)=>x-y);return b[Math.floor(b.length/2)];};
+  for(const s of shots){
+    if(s.carry==null)continue;
+    const gr=groups[s.club]; if(!gr||gr.length<3)continue;
+    const m=med(gr);
+    if(m>40&&s.carry<0.5*m){
+      s.score=Math.min(s.score??30,25);
+      s.est.quality="suspect";s.est.conf="low";
+      s.est.notes.push(`Carried ${s.carry.toFixed(0)} yd vs ~${m.toFixed(0)} yd session median for ${s.club} — contact failure.`);
+      s.critique.unshift("Duff/top — carry collapsed vs your other "+s.club+" shots. Score capped; don't read the delivery numbers literally.");
+      s.flags.add("highspin");
+      s.duff=true;
+    }
+  }
+  return {shots,map,skippedStats,converted,apexConverted,sessDate,headers};
+}
+/* ================= AGGREGATION ACROSS SESSIONS ================= */
+const avg=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:null;
+function clubStats(shots){
+  const by={};
+  shots.forEach(s=>{(by[s.club]=by[s.club]||[]).push(s);});
+  const out={};
+  for(const[c,arr]of Object.entries(by)){
+    const good=arr.filter(s=>!s.duff);         // exclude contact failures from averages
+    const use=good.length>=Math.max(2,arr.length*0.4)?good:arr;
+    const pick=f=>use.map(s=>f(s)).filter(v=>v!=null);
+    out[c]={count:arr.length,duffs:arr.length-good.length,
+      ballSpeed:avg(pick(s=>s.ballSpeed)),vla:avg(pick(s=>s.vla)),hla:avg(pick(s=>s.hla)),
+      spin:avg(pick(s=>s.spinUsed)),spinAxis:avg(pick(s=>s.spinAxis)),
+      backSpin:avg(pick(s=>s.backSpin)),sideSpin:avg(pick(s=>s.sideSpin)),
+      apex:avg(pick(s=>s.apex)),carry:avg(pick(s=>s.carry)),total:avg(pick(s=>s.total)),
+      offline:avg(pick(s=>s.offline)),landing:avg(pick(s=>s.landing)),
+      path:avg(pick(s=>s.path)),aoa:avg(pick(s=>s.aoa)),dloft:avg(pick(s=>s.dloft)),face:avg(pick(s=>s.face)),
+      estClub:avg(pick(s=>s.est&&s.est.club)),smash:avg(pick(s=>s.est&&s.est.smash)),
+      score:Math.round(avg(pick(s=>s.score))||0)};
+  }
+  return out;
+}
+function allShots(){ return DB.sessions.flatMap(x=>x.shots); }
+function latestShots(){ return DB.sessions.length? DB.sessions[DB.sessions.length-1].shots : []; }
+
+/* ================= COACHING ENGINE: GAPS vs TOUR + FLIGHT DIAGNOSES ================= */
+const METRIC_LABEL={aoa:"Attack angle",launch:"Launch angle",spin:"Spin rate",apex:"Apex height",land:"Landing angle",face:"Face angle",path:"Club path",smash:"Ball flight efficiency"};
+function computeCoaching(){
+  if(!DB.sessions.length)return{cards:[],flightNotes:[]};
+  /* recency-weighted: latest session ×2 */
+  const shots=[...allShots(),...latestShots()];
+  const stats=clubStats(shots);
+  const prevStats=DB.sessions.length>=2?clubStats(DB.sessions[DB.sessions.length-2].shots):null;
+  const lastStats=clubStats(latestShots());
+  const gaps=[];
+  for(const[club,st]of Object.entries(stats)){
+    const t=TOUR[club]; if(!t||st.count<3)continue;
+    const push=(metric,you,tour,dir,unit,note)=>{
+      if(you==null)return;
+      if(dir!=="high"&&dir!=="low")return;
+      const norm=metric==="spin"?Math.abs(you-tour)/(tour*GAP_NORM.spin):Math.abs(you-tour)/GAP_NORM[metric];
+      if(dir==="high"&&you<=tour)return; if(dir==="low"&&you>=tour)return;
+      gaps.push({club,metric,you,tour,sev:norm,unit,note});
+    };
+    push("aoa",st.aoa,t.aoa, st.aoa>t.aoa+1.5&&/I|W$/.test(club)&&club!=="DR"?"high":(club==="DR"&&st.aoa<t.aoa?"low":"none"),"°",
+      club==="DR"?"Pros average -1.3° but optimal amateur driver AoA is upward; hitting down leaks carry."
+      :"Pros compress irons with a descending strike; a shallow or upward AoA costs strike quality and spin control.");
+    push("launch",st.vla,t.launch, st.vla<t.launch-2.5?"low":(st.vla>t.launch+4?"high":"none"),"°",
+      st.vla<t.launch?"Launching well below the Tour window flattens trajectory and kills carry + stopping power."
+      :"Launching well above the Tour window balloons flight and costs distance into any wind.");
+    push("spin",st.spin,t.spin, st.spin>t.spin*1.22?"high":(st.spin<t.spin*0.72?"low":"none")," rpm",
+      st.spin>t.spin?"Spin far above the Tour number usually means spin loft or strike — it bleeds distance and balloons flight."
+      :"Spin far below Tour means knuckling flight — hard to hold greens and unpredictable carry.");
+    push("apex",st.apex,t.apex, st.apex<t.apex-7?"low":"none"," yd",
+      "Peak height well under the Tour number = low trajectory; shots land hot and won't hold greens.");
+    push("land",st.landing,t.land, st.landing<t.land-7?"low":"none","°",
+      "Shallow landing angle vs Tour means run-out you can't control on approach shots.");
+    push("face",st.face,0, Math.abs(st.face)>2.5?(st.face>0?"high":"low"):"none","°",
+      "Average face angle this far from square is a directional tax on every swing (Tour delivery averages near 0°).");
+    push("path",st.path,0, Math.abs(st.path)>4?(st.path>0?"high":"low"):"none","°",
+      "Path this far from neutral narrows your playable shot windows (Tour paths average near 0°).");
+  }
+  gaps.sort((a,b)=>b.sev-a.sev);
+  /* conflict guard: "launch high" + "apex low" on the same club is contradictory advice —
+     keep the stronger one. Also cap coaching at 2 cards per club for focus. */
+  const filtered=[],perClub={};
+  for(const g of gaps){
+    const dupes=filtered.filter(x=>x.club===g.club);
+    if(dupes.length>=2)continue;
+    const conflict=dupes.some(x=>
+      (x.metric==="apex"&&g.metric==="launch"&&g.you>g.tour)||
+      (x.metric==="launch"&&x.you>x.tour&&g.metric==="apex"));
+    if(conflict)continue;
+    filtered.push(g);
+  }
+  /* map gap -> drill */
+  const cards=filtered.slice(0,5).map((g,i)=>{
+    const d=pickDrill(g);
+    let trend=null;
+    if(prevStats&&prevStats[g.club]&&lastStats[g.club]){
+      const key={aoa:"aoa",launch:"vla",spin:"spin",apex:"apex",land:"landing",face:"face",path:"path"}[g.metric];
+      const a=prevStats[g.club][key],b=lastStats[g.club][key];
+      if(a!=null&&b!=null){
+        const target=g.metric==="face"||g.metric==="path"?0:g.tour;
+        const improving=Math.abs(b-target)<Math.abs(a-target)-0.01;
+        trend={improving,delta:(b-a)};
+      }
+    }
+    return {rank:i+1,...g,drill:d,trend};
+  });
+  /* flight-pattern combo diagnoses on latest session */
+  const flightNotes=[];
+  for(const[club,st]of Object.entries(lastStats)){
+    const t=TOUR[club]; if(!t||st.count<3)continue;
+    if(st.vla!=null&&st.apex!=null&&st.vla<t.launch-2.5&&st.apex<t.apex-7)
+      flightNotes.push(`<b>${club}: low trajectory.</b> Launch ${st.vla.toFixed(1)}° + apex ${st.apex.toFixed(0)} yd vs Tour ${t.launch}° / ${t.apex} yd — low launch AND low peak is usually dynamic loft delivery, not just spin.`);
+    if(st.spin!=null&&st.aoa!=null&&st.spin>t.spin*1.25&&st.aoa<t.aoa-1.5)
+      flightNotes.push(`<b>${club}: ballooning combo.</b> Steep AoA (${fmt(st.aoa)}°) + spin ${st.spin.toFixed(0)} rpm (Tour ${t.spin}) — spin loft is too big; shallow the strike.`);
+    if(st.face!=null&&st.path!=null&&(st.face-st.path)>3)
+      flightNotes.push(`<b>${club}: open-face pattern.</b> Avg face-to-path ${fmt(st.face-st.path)}° — every miss leaks right of the path.`);
+    if(st.face!=null&&st.path!=null&&(st.face-st.path)<-3)
+      flightNotes.push(`<b>${club}: hook pattern.</b> Avg face-to-path ${fmt(st.face-st.path)}° closed — the two-way miss risk climbs fast past -3°.`);
+  }
+  return{cards,flightNotes};
+}
+const REF_TOUR="https://www.trackman.com/blog/golf/introducing-updated-tour-averages";
+const REF_SPIN="https://www.trackman.com/blog/golf/spin-rate";
+const yt=q=>"https://www.youtube.com/results?search_query="+encodeURIComponent(q);
+/* cats: driver, fwoods, longirons, midirons, shortirons, wedges, approach */
+const DRILL_LIB=[
+ {id:"aoaDR",t:"Launch-Up Driver Setup",cats:["driver"],clubs:["DR"],fix:"Negative attack angle · distance leak",
+  steps:["Ball off the lead heel, tee it so half the ball sits above the crown.","Tilt the trail shoulder down at address; 60% pressure trail side.","Feel like you strike the top-back quadrant of the ball on the way up."],
+  yt:yt("positive attack angle driver drill hit up on driver"),ref:REF_TOUR},
+ {id:"stepDrill",t:"Step-Change Speed Drill",cats:["driver"],clubs:["DR"],fix:"Clubhead speed · sequencing",
+  steps:["Start feet together, step toward target as you swing down.","Ten swings at 80%, ten at max intent — no ball first, then ball.","Track est. club speed session to session in Your Bag."],
+  yt:yt("step drill golf swing speed ground force")},
+ {id:"teeGate",t:"Crown Tee Gate",cats:["driver"],clubs:["DR"],fix:"Strike location on the big stick",
+  steps:["Tee a second ball one clubhead outside the real one.","Miss the outer tee — center strikes only.","Foot-spray the face every 10 balls to verify."],
+  yt:yt("driver strike location drill foot spray center contact")},
+ {id:"sweep",t:"Low-Point Sweep",cats:["fwoods"],clubs:["3W","5W","2H","3H","4H"],fix:"Fairway wood contact off the deck",
+  steps:["Draw a chalk line; ball just ahead of it.","Brush the grass AT or barely after the line — woods sweep, they don't dig.","Alternate 3W off deck and off a low tee to groove the feel."],
+  yt:yt("fairway wood off the deck drill low point")},
+ {id:"hybridFlight",t:"Hybrid Flight Windows",cats:["fwoods","approach"],clubs:["2H","3H","4H"],fix:"Trajectory control with hybrids",
+  steps:["Pick three windows: low runner, stock, high soft.","Three balls per window, rotating.","Log launch + apex per window on your next import."],
+  yt:yt("hybrid golf trajectory control drill")},
+ {id:"towel",t:"Towel-Behind-Ball Compression",cats:["longirons","midirons","shortirons"],clubs:["3I","4I","5I","6I","7I","8I","9I","PW"],fix:"Scooping · shallow AoA · thin strikes",
+  steps:["Fold a towel 6 inches behind the ball.","Hit half swings — clean strikes miss it entirely.","Full swings only when 10 straight miss the towel."],
+  yt:yt("towel behind ball drill ball first contact"),ref:REF_TOUR},
+ {id:"leanComp",t:"Shaft-Lean Compression",cats:["midirons","shortirons"],clubs:["5I","6I","7I","8I","9I","PW"],fix:"High spin loft · ballooning · distance leak",
+  steps:["Hands slightly ahead at setup; punch swings holding a waist-high finish.","Feel the handle keep moving through impact — no throwaway.","Watch dynamic loft drop 2-4° over a session; spin follows."],
+  yt:yt("shaft lean compression drill punch shot"),ref:REF_SPIN},
+ {id:"window",t:"Window Drill",cats:["longirons","midirons","approach"],clubs:["3I","4I","5I","6I","7I"],fix:"Low trajectory · apex control",
+  steps:["Pick a 'window' above the range target (top of the net poles).","Hit 10 balls trying to peak the flight through that window.","Pair with the Flight Ladder — apex follows launch + spin."],
+  yt:yt("golf trajectory window drill ball flight control")},
+ {id:"flightLadder",t:"Dynamic Loft Flight Ladder",cats:["midirons","approach"],clubs:["5I","6I","7I","8I"],fix:"Launch too low or too high",
+  steps:["5 shots flighted LOW, 5 stock, 5 HIGH with the same club.","Note launch numbers per set; find the setup that buys the launch you need.","Ball position check — too far back is the #1 launch killer."],
+  yt:yt("hit golf ball higher lower flight ladder drill")},
+ {id:"gate",t:"Outside-Stick Path Gate",cats:["driver","midirons"],clubs:["DR","5I","6I","7I"],fix:"Extreme in-to-out path · blocks and hooks",
+  steps:["Alignment stick just outside the ball, angled down the line.","Swing without contact at 70% speed.","Track path each 5 shots — chase 0 to +3°."],
+  yt:yt("alignment stick path gate drill in to out fix")},
+ {id:"pump",t:"Pump Drill",cats:["driver","midirons"],clubs:["DR","5I","6I","7I"],fix:"Over-the-top · pulls and slices",
+  steps:["From the top, pump the club down and behind you twice.","Third pump, swing through and hit.","Feel like you're swinging out to right field."],
+  yt:yt("pump drill golf over the top fix transition")},
+ {id:"knuckles",t:"Knuckles-Down Face Drill",cats:["driver","midirons","shortirons"],clubs:["DR","3W","5I","6I","7I","8I","9I"],fix:"Open face · fades leaking into slices",
+  steps:["Slow-motion reps feeling lead-hand knuckles rotate down through impact.","Half-speed shots trying to start every ball LEFT of target.","Full speed once 7 of 10 start left."],
+  yt:yt("square the clubface drill lead wrist knuckles down")},
+ {id:"antiflip",t:"Body-Rotation Anti-Flip",cats:["midirons","shortirons"],clubs:["5I","6I","7I","8I","9I","PW"],fix:"Closed face · hooks",
+  steps:["Grip pressure 4/10 — hooks love a death grip.","Punch shots finishing chest at target, hands low.","Lead wrist stays flat (glove logo to target) through the strike."],
+  yt:yt("stop hooking golf ball body rotation drill flip")},
+ {id:"strikeLadder",t:"Strike-Location Ladder",cats:["longirons","midirons","driver"],clubs:["DR","3I","4I","5I","6I","7I"],fix:"Spin spikes · thin and high-face strikes",
+  steps:["Foot-spray the face; hit 10 and map the strikes.","Narrow stance, grip down an inch for 10 more.","Chase 8 of 10 inside a quarter-sized center zone."],
+  yt:yt("foot spray face strike drill golf center contact"),ref:REF_SPIN},
+ {id:"clock",t:"Wedge Clock System",cats:["wedges","approach"],clubs:["PW","GW","SW","LW"],fix:"Distance control inside 120",
+  steps:["Three backswing lengths per wedge: 7:30, 9:00, 10:30.","Three balls per position; log carry per position from your import.","Build your personal chart — 9 stock numbers from 4 wedges."],
+  yt:yt("wedge clock system distance control drill")},
+ {id:"trajPair",t:"Trajectory Pairing",cats:["wedges","approach","shortirons"],clubs:["8I","9I","PW","GW","SW"],fix:"Shallow landing angle · shots won't hold",
+  steps:["Alternate one stock shot and one max-height shot, same club.","Compare landing angles in the app after import.","Steeper landing = more launch and enough spin; work both levers."],
+  yt:yt("landing angle golf approach shots hold the green"),ref:REF_TOUR},
+ {id:"spinChecks",t:"One-Hop-Stop Wedge Spin",cats:["wedges"],clubs:["PW","GW","SW","LW"],fix:"Low wedge spin · no bite",
+  steps:["Clean grooves, fresh-ish ball, slightly open face.","Clip the ball with a shallow strike — spin comes from friction, not chopping down.","Watch backspin numbers per shot in the deep dive."],
+  yt:yt("how to spin wedges one hop stop drill"),ref:REF_SPIN},
+ {id:"nineShots",t:"Nine-Shot Matrix (Advanced)",cats:["midirons","approach"],clubs:["6I","7I","8I"],fix:"Total face/path command",
+  steps:["3 start lines × 3 curves = 9 windows; call each shot before you hit.","One point per window hit; play to 9.","Your face/path numbers per shot tell you which windows you actually own."],
+  yt:yt("nine ball flight drill tiger woods 9 shots")},
+];
+const CAT_LABEL={priority:"From Your Data",driver:"Driver",fwoods:"Fairway Woods & Hybrids",longirons:"Long Irons (3-4)",midirons:"Mid Irons (5-7)",shortirons:"Short Irons (8-PW)",wedges:"Wedges & Short Game",approach:"Approach & Scoring"};
+const CLUB_CATS={DR:["driver"],"3W":["fwoods"],"5W":["fwoods"],"2H":["fwoods"],"3H":["fwoods"],"4H":["fwoods"],"3I":["longirons"],"4I":["longirons"],"5I":["midirons"],"6I":["midirons"],"7I":["midirons"],"8I":["shortirons"],"9I":["shortirons"],PW:["shortirons","wedges"],GW:["wedges"],SW:["wedges"],LW:["wedges"]};
+const byId=id=>DRILL_LIB.find(d=>d.id===id);
+const DRILLS={
+  aoaDR:byId("aoaDR"),aoaIron:byId("towel"),
+  launchLow:byId("flightLadder"),launchHigh:byId("leanComp"),
+  spinHigh:byId("leanComp"),spinLow:byId("strikeLadder"),
+  apex:byId("window"),land:byId("trajPair"),
+  faceOpen:byId("knuckles"),faceClosed:byId("antiflip"),
+  pathIn:byId("gate"),pathOut:byId("pump"),
+};
+function pickDrill(g){
+  if(g.metric==="aoa")return g.club==="DR"?DRILLS.aoaDR:DRILLS.aoaIron;
+  if(g.metric==="launch")return g.you<g.tour?DRILLS.launchLow:DRILLS.launchHigh;
+  if(g.metric==="spin")return g.you>g.tour?DRILLS.spinHigh:DRILLS.spinLow;
+  if(g.metric==="apex")return DRILLS.apex;
+  if(g.metric==="land")return DRILLS.land;
+  if(g.metric==="face")return g.you>0?DRILLS.faceOpen:DRILLS.faceClosed;
+  if(g.metric==="path")return g.you>0?DRILLS.pathIn:DRILLS.pathOut;
+  return DRILLS.spinLow;
+}
+
+/* ================= ROUTER ================= */
+/* ---------- premium viz helpers ---------- */
+function ringSVG(score,size=64,stroke=6){
+  const r=(size-stroke)/2, c=2*Math.PI*r, pct=Math.max(0,Math.min(100,score??0))/100;
+  const col=scoreColor(score);
+  return `<svg class="ring" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+    <circle class="bgc" cx="${size/2}" cy="${size/2}" r="${r}" stroke-width="${stroke}"/>
+    <circle class="fgc" cx="${size/2}" cy="${size/2}" r="${r}" stroke-width="${stroke}" stroke="${col}"
+      stroke-dasharray="${(c*pct).toFixed(1)} ${c.toFixed(1)}"/>
+    <text x="50%" y="53%" dominant-baseline="middle" text-anchor="middle" font-size="${size*0.34}">${score??"—"}</text>
+  </svg>`;
+}
+function sparkSVG(vals,w=220,h=54,color="var(--yellow)"){
+  const v=vals.filter(x=>x!=null);
+  if(v.length<2)return `<div style="font-size:12px;color:var(--muted)">Need 2+ sessions for a trend.</div>`;
+  const min=Math.min(...v),max=Math.max(...v),span=(max-min)||1,pad=4;
+  const pts=v.map((x,i)=>[pad+i*(w-2*pad)/(v.length-1), h-pad-((x-min)/span)*(h-2*pad)]);
+  const line=pts.map(p=>p[0].toFixed(1)+","+p[1].toFixed(1)).join(" ");
+  const area=`${pad},${h-pad} ${line} ${w-pad},${h-pad}`;
+  const last=pts[pts.length-1];
+  return `<svg class="spark" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" style="width:100%;height:${h}px">
+    <polyline class="area" points="${area}" fill="${color}" stroke="none"/>
+    <polyline points="${line}" stroke="${color}"/>
+    <circle cx="${last[0]}" cy="${last[1]}" r="3.4" fill="${color}"/>
+  </svg>`;
+}
+let VIEWSTACK=["home"];
+function go(v,push=true){
+  if(push)VIEWSTACK=[v];
+  document.querySelectorAll(".view").forEach(el=>el.classList.remove("active"));
+  const el=document.getElementById("view-"+v); if(el)el.classList.add("active");
+  document.querySelectorAll(".navbtn").forEach(b=>b.classList.remove("active"));
+  const nb=document.getElementById("nav-"+(v==="sessdetail"?"sessions":v)); if(nb)nb.classList.add("active");
+  document.getElementById("backBtn").style.display=v==="sessdetail"?"inline-block":"none";
+  document.getElementById("crumb").textContent="";
+  if(v==="home")renderHome();
+  if(v==="sessions")renderSessions();
+  if(v==="coaching")renderCoaching();
+  window.scrollTo({top:0});
+}
+function openSession(id){
+  VIEWSTACK=["sessions","sessdetail:"+id];
+  renderSessDetail(id);
+  document.querySelectorAll(".view").forEach(el=>el.classList.remove("active"));
+  document.getElementById("view-sessdetail").classList.add("active");
+  document.querySelectorAll(".navbtn").forEach(b=>b.classList.remove("active"));
+  document.getElementById("nav-sessions").classList.add("active");
+  document.getElementById("backBtn").style.display="inline-block";
+  window.scrollTo({top:0});
+}
+function goBack(){ go("sessions"); }
+
+/* ================= HOME VIEW (focus + bag) ================= */
+const CLUB_ORDER=["DR","3W","5W","2H","3H","4H","3I","4I","5I","6I","7I","8I","9I","PW","GW","SW","LW"];
+function clubHeadSVG(club){
+  /* Heads-up like a bagged club: head at top, shaft below, grip at bottom. */
+  const shaft=`<rect x="23" y="24" width="3.4" height="52" fill="#9a9ea8"/>`;
+  const grip=`<rect x="21" y="74" width="7.5" height="20" rx="3.5" fill="#26262b" stroke="#3a3a40" stroke-width="1"/>`;
+  let head="";
+  if(club==="DR") /* RadSpeed: matte black crown, yellow accent */
+    head=`<ellipse cx="24" cy="15" rx="16" ry="10.5" fill="#141418" stroke="#3d3d44" stroke-width="1.4"/>
+          <path d="M10 17 q14 7 28 1" stroke="#ffd60a" stroke-width="2.4" fill="none"/>
+          <ellipse cx="25" cy="10.5" rx="12" ry="3.6" fill="#1f1f24"/>`;
+  else if(club==="PT") /* Scotty-style milled blade, plumber neck, red dot */
+    head=`<rect x="8" y="9" width="26" height="10" rx="2" fill="#c8ccd4" stroke="#e6e8ec" stroke-width="1"/>
+          <line x1="11" y1="14" x2="31" y2="14" stroke="#8d919a" stroke-width="1"/>
+          <circle cx="21" cy="12" r="1.8" fill="#e5484d"/>
+          <path d="M24 19 q2 3 0 5" stroke="#a9adb6" stroke-width="2.4" fill="none"/>`;
+  else if(/^\dW$/.test(club)) /* GT2 fairway: black, red accent */
+    head=`<ellipse cx="24" cy="16" rx="12.5" ry="8" fill="#141418" stroke="#3d3d44" stroke-width="1.3"/>
+          <path d="M13 18 q11 5.5 22 0.5" stroke="#e5484d" stroke-width="2" fill="none"/>`;
+  else if(/^\dH$/.test(club)) /* 917 hybrid: compact, steel accent */
+    head=`<ellipse cx="24" cy="17" rx="10" ry="7" fill="#17171b" stroke="#6a6e76" stroke-width="1.4"/>
+          <path d="M16 19 q8 3.6 16 0.5" stroke="#9a9ea8" stroke-width="1.4" fill="none"/>`;
+  else if(/^(PW|GW|SW|LW)$/.test(club)) /* Vokey / wedge: taller chrome face, heavy grooves */
+    head=`<path d="M25 4 L11 15 Q9 19 13 20 L31 20 Q34.5 19 33.5 14 L29 4 Z" fill="#c8ccd4" stroke="#e9ebef" stroke-width="1"/>
+          <line x1="14" y1="11" x2="30" y2="11" stroke="#8d919a" stroke-width="1"/>
+          <line x1="13" y1="14" x2="31" y2="14" stroke="#8d919a" stroke-width="1"/>
+          <line x1="13" y1="17" x2="31" y2="17" stroke="#8d919a" stroke-width="1"/>`;
+  else /* 716 MB blade: compact chrome muscle-back */
+    head=`<path d="M25 6 L13 14 Q11 18 15 19 L30 19 Q32.5 18 31.5 14 L28 6 Z" fill="#c2c6ce" stroke="#e6e8ec" stroke-width="1"/>
+          <line x1="16" y1="12" x2="29" y2="12" stroke="#83878f" stroke-width="1"/>
+          <line x1="15" y1="15" x2="30" y2="15" stroke="#83878f" stroke-width="1"/>
+          <rect x="17" y="16.4" width="9" height="2" rx="1" fill="#9a9ea8"/>`;
+  return `<svg width="50" height="94" viewBox="0 0 50 94">${shaft}${grip}${head}</svg>`;
+}
+/* Cart bag styled after Dean's black/red Titleist cart bag, loaded with his 14:
+   RadSpeed driver, GT2 3W, 917 3H, 716 MB irons 3-PW, two Vokeys, Scotty putter. */
+const BAG_SVG=`<svg class="bagsvg" viewBox="0 0 190 360">
+<defs>
+  <linearGradient id="bagBody" x1="0" y1="0" x2="1" y2="0.25"><stop offset="0" stop-color="#232327"/><stop offset=".5" stop-color="#141416"/><stop offset="1" stop-color="#0c0c0e"/></linearGradient>
+  <linearGradient id="chrome" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#eceef2"/><stop offset=".5" stop-color="#a9adb6"/><stop offset="1" stop-color="#7c8089"/></linearGradient>
+  <linearGradient id="carbon" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#26262b"/><stop offset="1" stop-color="#0e0e10"/></linearGradient>
+</defs>
+<!-- ============ shafts (behind collar) ============ -->
+<g stroke="#9a9ea8" stroke-width="2.4" stroke-linecap="round">
+  <line x1="52" y1="112" x2="30" y2="30"/>   <!-- driver -->
+  <line x1="63" y1="110" x2="50" y2="42"/>   <!-- 3W -->
+  <line x1="72" y1="109" x2="66" y2="52"/>   <!-- 3H -->
+  <line x1="82" y1="108" x2="80" y2="60"/><line x1="89" y1="108" x2="89" y2="55"/>
+  <line x1="96" y1="108" x2="98" y2="60"/><line x1="103" y1="108" x2="107" y2="54"/>
+  <line x1="110" y1="108" x2="116" y2="60"/><line x1="117" y1="109" x2="125" y2="55"/>
+  <line x1="124" y1="110" x2="133" y2="62"/><line x1="130" y1="110" x2="141" y2="57"/> <!-- irons 3-PW -->
+  <line x1="137" y1="111" x2="150" y2="66"/><line x1="143" y1="112" x2="158" y2="60"/> <!-- vokeys -->
+  <line x1="58" y1="111" x2="44" y2="14"/>   <!-- putter (tall, back-left) -->
+</g>
+<!-- putter: milled blade, plumber neck, red dot -->
+<g><rect x="30" y="4" width="22" height="9" rx="2" fill="url(#chrome)" stroke="#d8dade" stroke-width="0.8"/>
+   <path d="M44 13 q2 3 0 6" stroke="#a9adb6" stroke-width="2.2" fill="none"/>
+   <circle cx="41" cy="8.5" r="1.6" fill="#e5484d"/></g>
+<!-- driver: matte black crown, yellow accent (RadSpeed vibe) -->
+<g><ellipse cx="26" cy="26" rx="17" ry="11" fill="url(#carbon)" stroke="#3a3a40" stroke-width="1.4"/>
+   <path d="M11 28 q15 8 30 1" stroke="#ffd60a" stroke-width="2.4" fill="none"/>
+   <ellipse cx="27" cy="21.5" rx="13" ry="4" fill="#1f1f24"/></g>
+<!-- 3W: smaller black head, red accent (GT2 vibe) -->
+<g><ellipse cx="47" cy="38" rx="12" ry="8" fill="url(#carbon)" stroke="#3a3a40" stroke-width="1.2"/>
+   <path d="M37 40 q10 5.5 20 0.5" stroke="#e5484d" stroke-width="2" fill="none"/></g>
+<!-- 3H: compact hybrid (917 vibe) -->
+<g><ellipse cx="64" cy="49" rx="9" ry="6.5" fill="#17171b" stroke="#5a5e66" stroke-width="1.4"/>
+   <path d="M57 51 q7 3.5 14 0.5" stroke="#9a9ea8" stroke-width="1.4" fill="none"/></g>
+<!-- 716 MB blades: 3-PW, fanned chrome muscle-backs -->
+<g>
+${[[78,56,-14],[87,51,-10],[96,56,-6],[105,50,-2],[114,56,2],[123,51,6],[131,58,10],[139,53,13]].map(([x,y,r])=>`
+  <g transform="translate(${x},${y}) rotate(${r})">
+    <path d="M-2 0 L10 -1 Q13 0 12.5 3 L11 8 Q10.5 10 8 10 L-1 9 Q-3 8 -2.6 5 Z" fill="url(#chrome)" stroke="#d4d6da" stroke-width="0.7"/>
+    <line x1="0" y1="3" x2="10" y2="2.4" stroke="#7c8089" stroke-width="0.8"/>
+    <line x1="0" y1="5.5" x2="9.5" y2="5" stroke="#7c8089" stroke-width="0.8"/>
+    <rect x="2" y="6.6" width="7" height="2" rx="1" fill="#8d9199"/>
+  </g>`).join("")}
+</g>
+<!-- Vokeys: taller lofted wedge heads -->
+<g>
+${[[148,60,16],[156,54,19]].map(([x,y,r])=>`
+  <g transform="translate(${x},${y}) rotate(${r})">
+    <path d="M-3 0 L10 -2 Q14 -1 13 4 L11 10 Q10 12 7 12 L-2 10 Q-4.5 9 -3.8 5 Z" fill="url(#chrome)" stroke="#e2e4e8" stroke-width="0.7"/>
+    <line x1="-1" y1="2.5" x2="10.5" y2="1" stroke="#7c8089" stroke-width="0.7"/>
+    <line x1="-1" y1="5" x2="10" y2="3.6" stroke="#7c8089" stroke-width="0.7"/>
+    <line x1="-0.5" y1="7.4" x2="9.5" y2="6.2" stroke="#7c8089" stroke-width="0.7"/>
+  </g>`).join("")}
+</g>
+<!-- ============ bag ============ -->
+<!-- top collar: black rim with red inner cuff like the photo -->
+<ellipse cx="95" cy="108" rx="62" ry="20" fill="#0a0a0c" stroke="#26262b" stroke-width="2"/>
+<ellipse cx="95" cy="108" rx="54" ry="16" fill="#101013" stroke="#e5484d" stroke-width="3"/>
+<path d="M48 104 Q95 88 142 104" fill="none" stroke="#e5484d" stroke-width="3.2"/>
+<line x1="70" y1="94.5" x2="119" y2="94.5" stroke="#2c2c31" stroke-width="2"/>
+<!-- body -->
+<path d="M33 108 L44 330 Q46 348 66 348 L124 348 Q144 348 146 330 L157 108"
+  fill="url(#bagBody)" stroke="#2e2e33" stroke-width="2"/>
+<!-- signature red piping: twin curves sweeping down the front like the Titleist trim -->
+<path d="M60 118 Q70 190 64 344" fill="none" stroke="#e5484d" stroke-width="4"/>
+<path d="M72 120 Q83 195 76 346" fill="none" stroke="#e5484d" stroke-width="2.2"/>
+<!-- diagonal zip on upper panel -->
+<path d="M84 128 L138 168" stroke="#e5484d" stroke-width="2.4"/>
+<path d="M84 128 L138 168" stroke="#0a0a0c" stroke-width="1" stroke-dasharray="2.5 2.5"/>
+<rect x="133" y="163" width="9" height="5" rx="1.6" fill="#3a3a40" transform="rotate(36 137 165)"/>
+<!-- ring detail + red grommet like the photo -->
+<circle cx="112" cy="150" r="9" fill="none" stroke="#3c3c42" stroke-width="3"/>
+<ellipse cx="92" cy="176" rx="5" ry="6.5" fill="none" stroke="#e5484d" stroke-width="2.4"/>
+<!-- side grab handle -->
+<path d="M37 150 q-9 26 2 54" fill="none" stroke="#0a0a0c" stroke-width="9" stroke-linecap="round"/>
+<path d="M37 150 q-9 26 2 54" fill="none" stroke="#2c2c31" stroke-width="4.5" stroke-linecap="round"/>
+<!-- lower accessory pocket, red-zipped ball pocket lid -->
+<path d="M46 236 Q45 218 62 216 L112 214 Q126 214 127 230 L128 300 Q128 316 112 317 L64 318 Q48 318 47 302 Z" fill="#111114" stroke="#2e2e33" stroke-width="1.8"/>
+<path d="M50 236 Q88 226 124 232" fill="none" stroke="#e5484d" stroke-width="2.6"/>
+<rect x="118" y="228" width="8" height="5" rx="1.6" fill="#3a3a40"/>
+<!-- name patch -->
+<rect x="86" y="252" width="52" height="34" rx="8" fill="#0d0d10" stroke="#e5484d" stroke-width="1.6"/>
+<text x="112" y="267" text-anchor="middle" font-family="Barlow Condensed" font-weight="800" font-size="14" fill="#ffd60a" letter-spacing="2">SWING</text>
+<text x="112" y="281" text-anchor="middle" font-family="Barlow Condensed" font-weight="800" font-size="14" fill="#f4f4f1" letter-spacing="2">FORGE</text>
+<!-- base -->
+<path d="M46 332 L144 332 L142 350 Q140 356 130 356 L60 356 Q50 356 48 350 Z" fill="#0a0a0c" stroke="#26262b" stroke-width="2"/>
+</svg>`;
+
+/* Dean's actual bag — model labels for the club list */
+const MYBAG={
+  DR:"Cobra RadSpeed · Driver","3W":"Titleist GT2 · 3 Wood","5W":"5 Wood",
+  "2H":"Titleist 917 · Hybrid","3H":"Titleist 917 · 3 Hybrid","4H":"Titleist 917 · Hybrid",
+  "3I":"716 MB · 3 Iron","4I":"716 MB · 4 Iron","5I":"716 MB · 5 Iron","6I":"716 MB · 6 Iron",
+  "7I":"716 MB · 7 Iron","8I":"716 MB · 8 Iron","9I":"716 MB · 9 Iron",PW:"716 MB · P-Wedge",
+  GW:"Vokey SM · Gap Wedge",SW:"Vokey SM · Sand Wedge",LW:"Vokey SM · Lob Wedge",PT:"Scotty Cameron · Putter"
+};
+function metricRowsHTML(st,t){
+  const rows=[
+    ["Carry",st.carry,t&&t.carry,"yd"],["Total",st.total,null,"yd"],["Ball speed",st.ballSpeed,t&&t.bs,"mph"],
+    ["Est. club speed",st.estClub,t&&t.cs,"mph"],["Smash (assumed)",st.smash,t&&t.smash,""],
+    ["Launch angle",st.vla,t&&t.launch,"°"],["Launch direction",st.hla,null,"°"],
+    ["Spin rate",st.spin,t&&t.spin,"rpm"],["Spin axis",st.spinAxis,null,"°"],
+    ["Back spin",st.backSpin,null,"rpm"],["Side spin",st.sideSpin,null,"rpm"],
+    ["Apex",st.apex,t&&t.apex,"yd"],["Landing angle",st.landing,t&&t.land,"°"],["Offline",st.offline,null,"yd"],
+    ["Club path",st.path,0,"°"],["Face angle",st.face,0,"°"],["Attack angle",st.aoa,t&&t.aoa,"°"],["Dynamic loft",st.dloft,null,"°"],
+  ];
+  return `<table class="mtable"><tr><th>Metric</th><th>You (avg)</th><th>Tour</th><th>Gap</th></tr>`+
+    rows.filter(r=>r[1]!=null).map(([n,you,tour,u])=>{
+      const dec=u==="rpm"?0:u==="yd"?0:u===""?2:1;
+      const gap=tour!=null?you-tour:null;
+      const big=tour!=null&&(u==="rpm"?Math.abs(gap)>tour*0.22:u==="°"?Math.abs(gap)>2.5:u==="yd"?Math.abs(gap)>15:Math.abs(gap)>0.06);
+      return `<tr><td>${n}</td><td class="you">${you.toFixed(dec)} ${u}</td><td class="tour">${tour!=null?tour.toFixed(dec)+" "+u:"—"}</td>
+        <td class="${tour==null?"":big?"gap-bad":"gap-ok"}">${gap!=null?fmt(gap):"—"}</td></tr>`;
+    }).join("")+`</table>`;
+}
+function renderHome(){
+  const el=document.getElementById("view-home");
+  if(!DB.sessions.length){
+    el.innerHTML=`<div class="card"><h2>Welcome to <span class="y">SwingForge</span></h2>
+      <div class="sub">Upload a Square Golf range session and this page becomes your command center: what you're working on, plus your bag with live averages for every club.</div>
+      <div class="btnrow"><button class="btn" onclick="go('upload')">Upload first session</button></div></div>`;
+    return;
+  }
+  const {cards}=computeCoaching();
+  const top=cards[0];
+  const stats=clubStats(allShots());
+  const clubs=CLUB_ORDER.filter(c=>stats[c]);
+  const scoreHist=DB.sessions.map(x=>x.summary.score);
+  const lastSess=DB.sessions[DB.sessions.length-1];
+  const mostClub=Object.entries(stats).sort((a,b)=>b[1].count-a[1].count)[0];
+  const carryHist=mostClub?DB.sessions.map(x=>{const cs=clubStats(x.shots)[mostClub[0]];return cs?cs.carry:null;}):[];
+  const delta=scoreHist.length>=2?scoreHist[scoreHist.length-1]-scoreHist[scoreHist.length-2]:null;
+  el.innerHTML=`
+  <div class="greet"><div class="g1">Locked <span class="y">In</span></div><div class="g2">${DB.sessions.length} session${DB.sessions.length>1?"s":""} · ${allShots().length} swings logged</div></div>
+  <div class="card">
+    <div class="herostats">
+      ${ringSVG(lastSess.summary.score,104,10)}
+      <div style="flex:1;min-width:180px">
+        <div class="eyebrow">Latest Session</div>
+        <div style="font-family:'Barlow Condensed';font-weight:800;font-size:24px;letter-spacing:.03em">${lastSess.name}</div>
+        <div style="font-size:12.5px;color:var(--muted);margin-top:3px">${lastSess.shots.length} shots${delta!=null?` · <span style="color:${delta>=0?"var(--good)":"var(--red)"};font-weight:700">${delta>=0?"▲":"▼"} ${Math.abs(delta)} vs last</span>`:""}</div>
+        <div class="btnrow" style="margin-top:10px"><button class="btn ghost" style="padding:9px 14px" onclick="openSession('${lastSess.id}')">Open report</button></div>
+      </div>
+    </div>
+    ${DB.sessions.length>=2?`<div class="progressrow" style="margin-top:16px">
+      <div class="trendtile"><div class="tl">Session score trend</div><div class="tv" style="color:var(--yellow)">${scoreHist[scoreHist.length-1]}</div>${sparkSVG(scoreHist,220,50,"#ffd60a")}</div>
+      <div class="trendtile"><div class="tl">${MYBAG[mostClub[0]]||mostClub[0]} carry trend</div><div class="tv" style="color:var(--good)">${mostClub[1].carry?mostClub[1].carry.toFixed(0)+" yd":"—"}</div>${sparkSVG(carryHist,220,50,"#4cc38a")}</div>
+    </div>`:""}
+  </div>`+`
+  ${top?`<div class="card focus">
+    <div class="eyebrow">Current Focus</div>
+    <h2>${top.club} · ${METRIC_LABEL[top.metric]}${top.trend?`<span class="trend ${top.trend.improving?"up":"down"}">${top.trend.improving?"▲ improving":"▼ vs last session"}</span>`:""}</h2>
+    <div class="vs">
+      <div class="v you ${"off"}"><b>${top.you.toFixed(top.unit===" rpm"?0:1)}${top.unit}</b><span>Your avg</span></div>
+      <div class="v tour"><b>${top.tour.toFixed(top.unit===" rpm"?0:1)}${top.unit}</b><span>Tour avg</span></div>
+    </div>
+    <div class="why">${top.note}</div>
+    <div class="drill"><h4 style="font-family:'Barlow Condensed';font-size:16px;letter-spacing:.06em;text-transform:uppercase;color:var(--yellow);margin-bottom:6px">This week: ${top.drill.t}</h4>
+      <ol style="margin-left:18px;font-size:13px;line-height:1.6">${top.drill.steps.map(s=>`<li>${s}</li>`).join("")}</ol></div>
+    <div class="btnrow"><button class="btn ghost" onclick="go('coaching')">Full coaching plan →</button></div>
+  </div>`:""}
+  <div class="card">
+    <h2>Your <span class="y">Bag</span></h2>
+    <div class="sub">Averages across all ${DB.sessions.length} saved session${DB.sessions.length>1?"s":""} (duffs excluded). Tap a club to pull it and see every metric vs Tour.</div>
+    <div class="bagwrap">
+      <div>${BAG_SVG}</div>
+      <div class="clublist">
+        ${clubs.map(c=>{const st=stats[c],t=TOUR[c];return `
+        <div class="clubrow" id="crow-${c}" onclick="toggleClub('${c}')">
+          <div class="head">
+            <div class="slot">${clubHeadSVG(c)}</div>
+            <div><div class="cname">${MYBAG[c]||(t?t.label:c)}</div><div style="font-size:11px;color:var(--muted)">${st.count} shots logged${st.duffs?` · ${st.duffs} duff${st.duffs>1?"s":""} excluded`:""}</div></div>
+            <div class="ccarry"><b>${st.carry?st.carry.toFixed(0):"—"}</b><span>yd carry</span></div>
+          </div>
+          <div class="detail"><div class="inner">${metricRowsHTML(st,t)}
+            ${t&&t.extrap?`<div class="mutednote">Tour numbers for this wedge are extrapolated — TrackMan publishes through PW.</div>`:""}
+          </div></div>
+        </div>`;}).join("")}
+      </div>
+    </div>
+  </div>`;
+}
+function toggleClub(c){
+  const row=document.getElementById("crow-"+c);
+  const wasOpen=row.classList.contains("open");
+  document.querySelectorAll(".clubrow.open").forEach(r=>r.classList.remove("open"));
+  if(!wasOpen)row.classList.add("open");
+}
+
+/* ================= SESSIONS LIST + DETAIL ================= */
+const scoreColor=sc=>sc==null?"var(--warn)":sc>=75?"var(--good)":sc>=50?"var(--warn)":"var(--bad)";
+const scoreClass=sc=>sc==null?"p-warn":sc>=75?"p-good":sc>=50?"p-warn":"p-bad";
+function sessionSummary(shots){
+  const scored=shots.filter(s=>s.score!=null);
+  const sc=Math.round(avg(scored.map(s=>s.score))||0);
+  const leakCount={};
+  shots.forEach(s=>{for(const[k,g]of Object.entries(s.grades||{}))if(g&&g.g!=="good")leakCount[k]=(leakCount[k]||0)+(g.g==="bad"?2:1);});
+  const leakName={path:"club path",face:"face angle",ftp:"face-to-path",aoa:"attack angle",dloft:"dynamic loft",spin:"spin rate",vla:"launch angle",hla:"start line"};
+  const leak=Object.entries(leakCount).sort((a,b)=>b[1]-a[1])[0];
+  return{score:sc,leak:leak?leakName[leak[0]]:null,clubs:[...new Set(shots.map(s=>s.club))]};
+}
+function renderSessions(){
+  const el=document.getElementById("view-sessions");
+  if(!DB.sessions.length){el.innerHTML=`<div class="card"><div class="empty">No sessions saved yet.<br><br><button class="btn" onclick="go('upload')">Upload your first CSV</button></div></div>`;return;}
+  el.innerHTML=[...DB.sessions].reverse().map(sess=>{
+    const sum=sess.summary;
+    return `<div class="sesscard" onclick="openSession('${sess.id}')">
+      <div>${ringSVG(sum.score,58,6)}</div>
+      <div class="meta"><div class="t">${sess.name}</div>
+      <div class="d">${sess.shots.length} shots · ${sum.clubs.join(", ")}${sum.leak?" · leak: "+sum.leak:""}</div></div>
+      <div class="arrow">›</div>
+    </div>`;
+  }).join("")+`<div style="text-align:center;margin-top:6px"><button class="delbtn" onclick="if(confirm('Delete ALL saved sessions?')){DB.sessions=[];saveDB();renderSessions();}">Clear all sessions</button></div>`;
+}
+let DSEL=0,DCLUB="ALL";
+function renderSessDetail(id){
+  const sess=DB.sessions.find(x=>x.id===id); if(!sess)return go("sessions");
+  document.getElementById("crumb").textContent=sess.name;
+  const el=document.getElementById("view-sessdetail");
+  const shots=sess.shots, scored=shots.filter(s=>s.score!=null);
+  const best=[...scored].sort((a,b)=>b.score-a.score).slice(0,3);
+  const worst=[...scored].sort((a,b)=>a.score-b.score).slice(0,3);
+  const line=s=>`<b>#${s.n} ${s.club}</b> — ${s.shape}, score ${s.score}. ${s.ballSpeed.toFixed(0)} mph${s.carry?", "+s.carry.toFixed(0)+" yd":""}${s.path!=null?", path "+fmt(s.path)+"°":""}${s.face!=null?", face "+fmt(s.face)+"°":""}`;
+  const clubs=[...new Set(shots.map(s=>s.club))];
+  if(DCLUB!=="ALL"&&!clubs.includes(DCLUB))DCLUB="ALL";
+  const list=DCLUB==="ALL"?shots:shots.filter(s=>s.club===DCLUB);
+  if(DSEL>=list.length)DSEL=0;
+  const s=list[DSEL];
+  el.innerHTML=`
+  <div class="card">
+    <div class="eyebrow">Session Report</div>
+    <h2>${sess.name} · <span class="y">Score ${sess.summary.score}</span></h2>
+    <div class="herostats" style="margin:12px 0 4px">${ringSVG(sess.summary.score,92,9)}
+      <div style="flex:1;min-width:200px"><div class="eyebrow" style="font-size:12px">Session Score</div>
+      <div style="font-size:12.5px;color:var(--muted);line-height:1.55;margin-top:4px">Weighted across every graded delivery metric. 75+ is a quality swing; the ring is your session average.</div></div></div>
+    <div class="statgrid">
+      <div class="stat"><div class="n plain">${scored.filter(x=>x.score>=75).length}</div><div class="l">Quality (75+)</div></div>
+      <div class="stat"><div class="n plain">${scored.filter(x=>x.score<50).length}</div><div class="l">Rough (&lt;50)</div></div>
+      <div class="stat"><div class="n plain">${clubs.length}</div><div class="l">Clubs</div></div>
+    </div>
+    <div class="hl">
+      <div class="good3"><h3>Highlights</h3><ul>${best.map(x=>`<li>${line(x)}</li>`).join("")}</ul></div>
+      <div class="bad3"><h3>Lowlights</h3><ul>${worst.map(x=>`<li>${line(x)}</li>`).join("")}</ul></div>
+    </div>
+    ${sess.summary.leak?`<div class="leak"><b>Biggest leak: ${sess.summary.leak}.</b> The Coaching tab weighs this against Tour benchmarks across all your sessions.</div>`:""}
+  </div>
+  <div class="card">
+    <h2>Shot-by-Shot <span class="y">Deep Dive</span></h2>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px">
+      <select onchange="DCLUB=this.value;DSEL=0;renderSessDetail('${id}')">
+        <option value="ALL"${DCLUB==="ALL"?" selected":""}>All clubs (${shots.length})</option>
+        ${clubs.map(c=>`<option value="${c}"${DCLUB===c?" selected":""}>${c} (${shots.filter(x=>x.club===c).length})</option>`).join("")}
+      </select>
+      <span style="font-size:12.5px;color:var(--muted)">tap a shot — color = score</span>
+    </div>
+    <div class="shotstrip">${list.map((sh,i)=>`<button style="background:${scoreColor(sh.score)}" class="${i===DSEL?"sel":""}" onclick="DSEL=${i};renderSessDetail('${id}')">${sh.n}</button>`).join("")}</div>
+    ${shotDetailHTML(s)}
+  </div>`;
+}
+function deliverySVG(s){
+  const path=s.path||0,face=s.face||0;
+  const rot=a=>` transform="rotate(${a} 90 118)"`;
+  return `<svg viewBox="0 0 180 150" width="180" height="150">
+    <line x1="90" y1="140" x2="90" y2="14" stroke="#4a4a50" stroke-width="1.5" stroke-dasharray="4 4"/>
+    <text x="90" y="10" text-anchor="middle" font-size="9" fill="#8a8a90">TARGET</text>
+    <g${rot(path)}><line x1="90" y1="140" x2="90" y2="40" stroke="#ffd60a" stroke-width="3.5" stroke-linecap="round"/>
+      <path d="M84 50 L90 38 L96 50" fill="none" stroke="#ffd60a" stroke-width="3.5" stroke-linecap="round"/></g>
+    <g${rot(face)}><line x1="70" y1="118" x2="110" y2="118" stroke="#e5484d" stroke-width="5" stroke-linecap="round"/></g>
+    <circle cx="90" cy="118" r="4.5" fill="#f4f4f1"/>
+    <text x="8" y="145" font-size="9" fill="#ffd60a">— path ${fmt(path)}°</text>
+    <text x="106" y="145" font-size="9" fill="#e5484d">— face ${fmt(face)}°</text></svg>`;
+}
+function mbar(name,val,unit,win,range,grade,note){
+  if(val==null)return"";
+  const[rl,rh]=range,pct=Math.max(2,Math.min(98,(val-rl)/(rh-rl)*100));
+  const zl=Math.max(0,Math.min(100,(win[0]-rl)/(rh-rl)*100)),zw=Math.max(2,Math.min(100,(win[1]-win[0])/(rh-rl)*100));
+  const col=grade?(grade.g==="good"?"var(--good)":grade.g==="warn"?"var(--warn)":"var(--bad)"):"var(--muted)";
+  return `<div class="mrow"><div class="mname">${name}</div>
+    <div class="mval" style="color:${col}">${val>=0&&/°/.test(unit)?"+":""}${val.toFixed(1)}${unit}</div>
+    <div class="mbar"><div class="zone" style="left:${zl}%;width:${zw}%"></div><div class="dot" style="left:${pct}%;background:${col}"></div></div>
+    ${note?`<div class="mnote">${note}</div>`:""}</div>`;
+}
+function shotDetailHTML(s){
+  if(!s)return"";
+  const p=prof(s.club);
+  return `<div class="deepgrid">
+    <div class="delivery">
+      <div class="eyebrow">Shot ${s.n} · ${s.club}</div>
+      <div class="shape">${s.shape}</div>
+      <div class="head">${HEADS[s.shape]||""}</div>
+      ${(s.path!=null&&s.face!=null)?deliverySVG(s):`<div class="mutednote">No club data — delivery diagram unavailable.</div>`}
+      <div style="margin-top:8px"><span class="pill ${scoreClass(s.score)}" style="font-size:15px;padding:6px 16px">Score ${s.score??"—"}</span></div>
+      ${s.est.club?`<div class="estbox"><div class="eyebrow" style="font-size:11px">Clubhead speed ${s.est.measured?"(measured)":"(derived)"}</div>
+        <div class="big">~${s.est.club} mph</div>
+        ${s.est.calc?`<div style="font-family:ui-monospace,monospace;font-size:11.5px;margin:4px 0;color:var(--muted)">${s.est.calc}</div>`:""}
+        <div>Smash ${s.est.smash}${s.est.measured?"":" (assumed)"} <span class="conf" style="background:${s.est.conf==="high"?"var(--good)":s.est.conf==="low"?"var(--bad)":"var(--warn)"}">${s.est.conf}</span></div>
+        ${s.est.notes.map(n=>`<div style="margin-top:6px;color:var(--muted)">${n}</div>`).join("")}</div>`:""}
+    </div>
+    <div>
+      ${mbar("Club path",s.path,"°",PATH_WIN,PATH_R,s.grades.path)}
+      ${mbar("Face angle",s.face,"°",FACE_WIN,FACE_R,s.grades.face)}
+      ${s.ftp!=null?mbar("Face to path",s.ftp,"°",[-2,2],[-10,10],s.grades.ftp,"The curvature engine: open = fade/slice, closed = draw/hook."):""}
+      ${mbar("Attack angle",s.aoa,"°",p.aoa,p.aoaR,s.grades.aoa)}
+      ${mbar("Dynamic loft",s.dloft,"°",p.dloft,[p.dloft[0]-8,p.dloft[1]+10],s.grades.dloft)}
+      ${s.spinUsed!=null?mbar("Spin",s.spinUsed," rpm",p.spin,[p.spin[0]*0.4,p.spin[1]*1.6],s.grades.spin):""}
+      ${mbar("Launch angle",s.vla,"°",p.vla,[p.vla[0]-8,p.vla[1]+10],s.grades.vla)}
+      ${mbar("Start line",s.hla,"°",HLA_WIN,HLA_R,s.grades.hla)}
+      ${s.carry!=null?`<div class="mrow"><div class="mname">Flight</div><div class="mval">${s.carry.toFixed(0)}</div><div style="font-size:12.5px;color:var(--muted)">yd carry${s.total!=null?" · "+s.total.toFixed(0)+" total":""}${s.offline!=null?" · "+Math.abs(s.offline).toFixed(0)+" yd "+(s.offline>0?"R":s.offline<0?"L":""):""}${s.apex!=null?" · apex "+s.apex.toFixed(0):""}${s.landing!=null?" · land "+s.landing.toFixed(0)+"°":""}</div></div>`:""}
+      ${s.critique.length?`<div class="critique" style="margin-top:10px"><div class="eyebrow" style="margin-bottom:6px">Read on this swing</div><ul>${s.critique.map(c=>`<li>${c}</li>`).join("")}</ul></div>`:""}
+    </div>
+  </div>`;
+}
+
+/* ================= COACHING VIEW ================= */
+let DISCCAT=null, DISCCLUB="ALL";
+function drillLinksHTML(d){
+  return `<div class="btnrow" style="margin-top:8px">
+    <a class="btn ghost linkbtn" href="${d.yt}" target="_blank" rel="noopener">▶ Watch drill videos</a>
+    ${d.ref?`<a class="btn ghost linkbtn" href="${d.ref}" target="_blank" rel="noopener">Reference: TrackMan</a>`:""}
+  </div>`;
+}
+function drillCardHTML(d,open=false){
+  return `<div class="drillacc${open?" open":""}" onclick="this.classList.toggle('open')">
+    <div class="dhead"><div><div class="dtitle">${d.t}</div><div class="dfix">${d.fix}</div></div><div class="dcaret">›</div></div>
+    <div class="dbody"><div class="dinner">
+      <ol>${d.steps.map(s=>`<li>${s}</li>`).join("")}</ol>
+      ${drillLinksHTML(d)}
+    </div></div>
+  </div>`;
+}
+function renderCoaching(){
+  const el=document.getElementById("view-coaching");
+  const {cards,flightNotes}=DB.sessions.length?computeCoaching():{cards:[],flightNotes:[]};
+  const top2=cards.slice(0,2), rest=cards.slice(2);
+  const clubsLogged=[...new Set(allShots().map(s=>s.club))];
+  const discCats=["driver","fwoods","longirons","midirons","shortirons","wedges","approach"];
+  let discDrills=[];
+  if(DISCCAT){
+    discDrills=DRILL_LIB.filter(d=>d.cats.includes(DISCCAT));
+    if(DISCCLUB!=="ALL")discDrills=discDrills.filter(d=>d.clubs.includes(DISCCLUB));
+  }else if(DISCCLUB!=="ALL"){
+    discDrills=DRILL_LIB.filter(d=>d.clubs.includes(DISCCLUB));
+  }
+  el.innerHTML=`
+  ${top2.length?`<div class="card"><div class="eyebrow">Work On These First</div>
+    <h2>Top <span class="y">Priorities</span></h2>
+    <div class="sub">The two biggest gaps between your averages and TrackMan Tour numbers, weighted toward your latest session. Re-ranks on every upload.</div></div>
+  ${top2.map(c=>`
+    <div class="coachcard ${c.rank===1?"rank1":""}">
+      <div class="rank">Priority ${c.rank}</div>
+      <h3>${c.club} · ${METRIC_LABEL[c.metric]}${c.trend?`<span class="trend ${c.trend.improving?"up":"down"}">${c.trend.improving?"▲ trending better":"▼ trending worse"}</span>`:""}</h3>
+      <div><span class="chip hot">You: ${c.you.toFixed(c.unit===" rpm"?0:1)}${c.unit}</span><span class="chip">Tour: ${c.tour.toFixed(c.unit===" rpm"?0:1)}${c.unit}</span><a class="chip" style="text-decoration:none" href="${REF_TOUR}" target="_blank" rel="noopener">TrackMan Tour avg ↗</a></div>
+      <div class="ref">${c.note}</div>
+      <div class="drill"><h4>Drill: ${c.drill.t}</h4><ol>${c.drill.steps.map(st=>`<li>${st}</li>`).join("")}</ol>${drillLinksHTML(c.drill)}</div>
+    </div>`).join("")}`
+  :`<div class="card"><div class="empty">Upload a session and your top two priorities build themselves —<br>ranked against TrackMan Tour averages.</div></div>`}
+  ${rest.length?`<div class="card"><div class="eyebrow">Also On The Radar</div>
+    <div class="sub">Smaller gaps — tap to expand. Don't chase these until the top two move.</div>
+    ${rest.map(c=>drillCardHTML({...c.drill,t:`${c.club} · ${METRIC_LABEL[c.metric]} — ${c.drill.t}`,fix:`You ${c.you.toFixed(c.unit===" rpm"?0:1)}${c.unit} vs Tour ${c.tour.toFixed(c.unit===" rpm"?0:1)}${c.unit}`})).join("")}</div>`:""}
+  ${flightNotes.length?`<div class="card"><div class="eyebrow">Flight Diagnoses — Latest Session</div>
+    ${flightNotes.map(n=>`<div class="leak" style="margin-top:10px">${n}</div>`).join("")}</div>`:""}
+  <div class="card">
+    <div class="eyebrow">Drill Discovery</div>
+    <h2>Browse By <span class="y">Category</span></h2>
+    <div class="sub">Pick an area to explore, or filter to one club. Drills stay collapsed until you open them.</div>
+    <div class="catchips">
+      ${discCats.map(cat=>`<button class="catchip${DISCCAT===cat?" on":""}" onclick="DISCCAT=DISCCAT==='${cat}'?null:'${cat}';renderCoaching()">${CAT_LABEL[cat]}</button>`).join("")}
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;margin:12px 0 4px;flex-wrap:wrap">
+      <select onchange="DISCCLUB=this.value;renderCoaching()">
+        <option value="ALL"${DISCCLUB==="ALL"?" selected":""}>Any club</option>
+        ${CLUB_ORDER.map(c=>`<option value="${c}"${DISCCLUB===c?" selected":""}>${MYBAG[c]||c}${clubsLogged.includes(c)?" ●":""}</option>`).join("")}
+      </select>
+      <span style="font-size:11.5px;color:var(--muted)">● = logged in your sessions</span>
+    </div>
+    ${discDrills.length?discDrills.map(d=>drillCardHTML(d)).join("")
+      :`<div class="empty" style="padding:26px">Pick a category above${DISCCLUB!=="ALL"?" — no drills matched that club in this category":" or choose a club to see matching drills"}.</div>`}
+  </div>`;
+}
+
+/* ================= UPLOAD ================= */
+function report(err,isErr,html=""){
+  const el=document.getElementById("mapReport");
+  el.innerHTML=isErr?`<div class="mutednote" style="color:var(--red)">${err}</div>`:html;
+}
+function saveSession(result,fileName){
+  const shots=result.shots;
+  const sum=sessionSummary(shots);
+  const name=(result.sessDate||fileName||("Session "+(DB.sessions.length+1))).replace(/\.csv$/i,"").slice(0,44);
+  const sess={id:"s"+Date.now(),name,importedAt:Date.now(),shots,summary:sum};
+  DB.sessions.push(sess); saveDB();
+  const found=Object.keys(result.map).filter(k=>result.map[k]!=null&&k!=="index");
+  const label={club:"Club",ballSpeed:"Ball speed",vla:"Launch angle",hla:"Launch direction",backSpin:"Backspin",sideSpin:"Sidespin",totalSpin:"Spin rate",spinAxis:"Spin axis",apex:"Apex",carry:"Carry",total:"Total",run:"Run",offline:"Offline",landing:"Landing angle",path:"Club path",aoa:"Attack angle",dloft:"Dynamic loft",face:"Face angle",clubSpeedMeas:"Club speed",smashMeas:"Smash factor"};
+  report("",false,`<div class="mutednote" style="color:var(--text)"><b>${shots.length} shots analyzed and saved as "${name}".</b>${result.skippedStats?` Skipped ${result.skippedStats} Average/Deviation rows.`:""}${result.converted?" Ball speeds converted m/s → mph.":""}${result.apexConverted?" Apex values looked like feet — converted to yards.":""}</div>
+    <div class="mapped">${found.map(f=>`<span class="chip">✓ ${label[f]}</span>`).join("")}</div>
+    <div class="btnrow"><button class="btn" onclick="openSession('${sess.id}')">Open session report →</button><button class="btn ghost" onclick="go('coaching')">Updated coaching plan</button></div>`);
+}
+function handleText(text,fileName){
+  const result=ingest(text);
+  if(result)saveSession(result,fileName);
+}
+function togglePaste(){const t=document.getElementById("pasteBox"),b=document.getElementById("parsePasteBtn");const on=t.style.display!=="block";t.style.display=on?"block":"none";b.style.display=on?"inline-block":"none";}
+function parsePaste(){const v=document.getElementById("pasteBox").value.trim();if(v)handleText(v,"Pasted session");}
+function initUpload(){
+  const dz=document.getElementById("dropZone"),fi=document.getElementById("fileInput");
+  dz.addEventListener("click",()=>fi.click());
+  dz.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" ")fi.click();});
+  ["dragover","dragenter"].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.classList.add("dragover");}));
+  ["dragleave","drop"].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.classList.remove("dragover");}));
+  dz.addEventListener("drop",e=>{const f=e.dataTransfer.files[0];if(f)readFile(f);});
+  fi.addEventListener("change",()=>{if(fi.files[0])readFile(fi.files[0]);fi.value="";});
+}
+function readFile(f){const r=new FileReader();r.onload=()=>handleText(r.result,f.name);r.onerror=()=>report("Couldn't read that file.",true);r.readAsText(f);}
+
+/* ================= DEMO ================= */
+function loadDemo(){
+  const rnd=(a,b)=>+(a+Math.random()*(b-a)).toFixed(1);
+  const lr=v=>(v<0?"L":"R")+Math.abs(v).toFixed(1);
+  const rows=[["Dates","10:05 "+new Date().toLocaleDateString(),"Place","Driving Ranges"],
+    ["Club","Index","Ball Speed(mph)","Launch Direction","Launch Angle","Spin Rate","Spin Axis","Back Spin","Side Spin","Apex(yd)","Carry(yd)","Total(yd)","Offline(yd)","Landing Angle","Club Path","Face Angle","Attack Angle","Dynamic Loft","ImpactHorizontal","ImpactVertical","ClubSpeed","SmashFactor"]];
+  const gen=(club,n,bs,vla,spin,path,face,aoa,dl,carry,apex,land)=>{
+    for(let i=0;i<n;i++){
+      rows.push([club,i,rnd(bs[0],bs[1]),lr(rnd(-4,4)),rnd(vla[0],vla[1]),rnd(spin[0],spin[1]).toFixed(0),lr(rnd(-15,15)),rnd(spin[0]*.95,spin[1]*.98).toFixed(0),lr(rnd(-900,900)),rnd(apex[0],apex[1]),rnd(carry[0],carry[1]),rnd(carry[0]+8,carry[1]+22),lr(rnd(-20,20)),rnd(land[0],land[1]),lr(rnd(path[0],path[1])),lr(rnd(face[0],face[1])),rnd(aoa[0],aoa[1]),rnd(dl[0],dl[1]),"0.0","0.0","0.0","0.0"]);
+    }
+    rows.push(["","Average","...","","","","","","","","","","","","","","",""]);
+  };
+  gen("Driver",12,[138,152],[7,12],[2600,4300],[-2,4],[0,4],[-4,1],[11,17],[212,246],[20,30],[32,40]);
+  gen("7 Iron",10,[105,118],[13,18],[6200,9200],[-4,2],[-3,2],[-5,1],[21,29],[148,168],[24,32],[44,50]);
+  gen("P-Wedge",8,[85,96],[22,28],[8600,11800],[-3,2],[-2,2],[-6,1.5],[31,42],[102,120],[24,30],[47,53]);
+  handleText(rows.map(r=>r.join(",")).join("\n"),"Demo session");
+}
+
+/* ================= BOOT ================= */
+if(!store.ok)document.getElementById("storageWarn").style.display="block";
+initUpload();
+go("home");
+
+</script>
+
+<script>
+if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
+  window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js").catch(()=>{}));
+}
+</script>
+</body>
+</html>
